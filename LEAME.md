@@ -11,23 +11,18 @@ Colección de herramientas útiles para trabajar con Inteligencia Artificial, pr
 
 
 ### 1. AI-First-Directive
-**Descripción:** Protocolo estandarizado para sesiones de trabajo con IA, asegurando flujos efectivos y resultados predecibles.
+**Descripción:** Protocolo estricto para colaboración humano-IA en desarrollo de software, diseñado para mantener el control del desarrollador y la integridad del código.
 
-**Características:**
-- 📋 Directrices claras para prompts
-- 🔄 Flujo de trabajo estandarizado
-- ⚡ Optimizado para volcados de proyecto
-- 🎯 Enfoque en objetivos específicos
+**Principios Centrales:**
+- ⚠️ **Principio de Falibilidad** - La IA debe reconocer sus limitaciones y presentar código para verificación
+- 🛑 **Intervención Mínima** - Sin cambios, optimizaciones o refactorizaciones no autorizadas
+- 📋 **Código Contextualmente Completo** - Entregar bloques de código completos listos para copiar y pegar
+- 🗣️ **Comunicación Factual** - Comunicación técnica y directa sin lenguaje emocional
+- ⚡ **Optimización de Recursos** - Maximizar eficiencia, eliminar diálogo redundante
+
+**Uso:** Incluye estas directivas en tus interacciones con IA para establecer reglas claras de colaboración y mantener control total sobre tu código.
 
 **Ubicación:** `/AI-First-Directive/`
-
-## Uso del Protocolo
-
-Los archivos en `AI-First-Directive/` definen las directrices para colaboración humano-IA. Inclúyelos en tus proyectos para:
-- Establecer reglas claras de comunicación
-- Mantener el control del flujo de trabajo
-- Garantizar integridad del código
-- Optimizar el tiempo de desarrollo
 
 
 ### 2. Project Dumper

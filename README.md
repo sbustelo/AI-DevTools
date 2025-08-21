@@ -10,23 +10,18 @@ A collection of useful tools for working with Artificial Intelligence, prompts, 
 
 
 ### 1. AI-First-Directive
-**Description:** Standardized protocol for AI work sessions, ensuring effective workflows and predictable results.
+**Description:** A strict protocol for human-AI collaboration in software development, designed to maintain developer control and code integrity.
 
-**Features:**
-- 📋 Clear prompt guidelines
-- 🔄 Standardized workflow
-- ⚡ Optimized for project dumps
-- 🎯 Focus on specific objectives
+**Core Principles:**
+- ⚠️ **Fallibility Principle** - AI must acknowledge its limitations and present code for verification
+- 🛑 **Minimum Intervention** - No unauthorized changes, optimizations, or refactoring
+- 📋 **Contextually Complete Code** - Deliver complete, copy-paste ready code blocks
+- 🗣️ **Factual Communication** - Technical, direct communication without emotional language
+- ⚡ **Resource Optimization** - Maximize efficiency, eliminate redundant dialogue
+
+**Usage:** Include these directives in your AI interactions to establish clear collaboration rules and maintain full control over your codebase.
 
 **Location:** `/AI-First-Directive/`
-
-## Protocol Usage
-
-The files in `AI-First-Directive/` define guidelines for human-AI collaboration. Include them in your projects to:
-- Establish clear communication rules
-- Maintain workflow control
-- Guarantee code integrity
-- Optimize development time
 
 
 ### 2. Project Dumper
