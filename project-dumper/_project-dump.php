@@ -291,7 +291,7 @@ function displayFileContent($filepath, $binaryExtensions) {
         echo "[binary file]\n";
     }
 
-    echo "\n// END of file: " . $filepath . "\n\n\n\n\n";
+    echo "\n// END of file: " . $filepath . "\n\n\n\n\n\n\n\n\n\n";
 }
 
 // Información del sistema y archivos ignorados
