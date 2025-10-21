@@ -17,12 +17,12 @@ Define los principios fundamentales de interacción: falibilidad, intervención 
 
 ---
 
-### **v2.109 — Avanzada**
+### **v2.111 — Avanzada**
 Versión ampliada y consolidada.  
 Integra jerarquías de leyes, principios operativos, protocolos de diagnóstico y preservación funcional, y criterios de arquitectura y diseño.  
 Es una directiva operativa para sesiones reales de desarrollo con IA.  
 
-🔗 [Ver DIRECTIVA v2.109](./DIRECTIVA_v2.109.md)
+🔗 [Ver DIRECTIVA v2.111](./DIRECTIVA_v2.111.md)
 
 ---
 

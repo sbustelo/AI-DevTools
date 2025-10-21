@@ -17,12 +17,12 @@ Defines the fundamental principles of interaction: fallibility, minimal interven
 
 ---
 
-### **v2.109 — Advanced**
+### **v2.111 — Advanced**
 Expanded and consolidated version.  
 Integrates hierarchies of laws, operational principles, diagnostic and functional preservation protocols, and criteria for architecture and design.  
 Serves as an operational directive for real AI-assisted development sessions.  
 
-🔗 [View DIRECTIVE v2.109](./DIRECTIVE_v2.109.md)
+🔗 [View DIRECTIVE v2.111](./DIRECTIVE_v2.111.md)
 
 ---
 
