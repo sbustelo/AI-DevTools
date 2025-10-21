@@ -1,5 +1,3 @@
-# ___PROTOCOLO-AI.md
-
 **Asunto: Protocolo de Colaboración Humano-IA para Desarrollo de Software**
 
 Este documento contiene el conjunto de directivas que definen la interfaz de comunicación y operación entre un desarrollador humano y un asistente de IA. Su objetivo es maximizar la eficiencia, preservar la integridad del código y garantizar que el control del proyecto permanezca en el desarrollador.
