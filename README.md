@@ -23,6 +23,9 @@ A collection of useful tools for working with Artificial Intelligence, prompts, 
 
 **Location:** `/AI-First-Directive/`
 
+👉 See [AI-First-Directive README](AI-First-Directive/README.md) for version history and extended protocols.
+
+
 
 ### 2. Project Dumper
 **Description:** PHP script that generates a complete dump of the directory structure and text file content, ideal for feeding AI prompts with the full context of a project.
@@ -34,6 +37,12 @@ A collection of useful tools for working with Artificial Intelligence, prompts, 
 - 🎯 Configurable with custom patterns
 
 **Location:** `/project-dumper/`
+
+
+
+### ✳️ Credits
+Created by [Santiago Bustelo](https://www.bustelo.com.ar/).  
+
 
 
 ## License

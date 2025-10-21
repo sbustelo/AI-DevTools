@@ -24,6 +24,10 @@ Colección de herramientas útiles para trabajar con Inteligencia Artificial, pr
 
 **Ubicación:** `/AI-First-Directive/`
 
+👉 Ver el LEAME de AI-First-Directive
+ para el historial de versiones y los protocolos extendidos.
+ 
+
 
 ### 2. Project Dumper
 **Descripción:** Script PHP que genera un volcado completo de la estructura de directorios y contenido de archivos de texto, ideal para alimentar prompts de IA con el contexto completo de un proyecto.
@@ -35,6 +39,12 @@ Colección de herramientas útiles para trabajar con Inteligencia Artificial, pr
 - 🎯 Configurable con patrones personalizados
 
 **Ubicación:** `/project-dumper/`
+
+
+
+### ✳️ Créditos
+Creado por [Santiago Bustelo](https://www.bustelo.com.ar/).  
+
 
 
 ## Licencia
