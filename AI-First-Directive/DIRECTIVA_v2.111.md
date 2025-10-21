@@ -1,10 +1,11 @@
 [PROTOCOLO DE SESIÓN - VERSIÓN 2.111]
+[INICIO DE DIRECTIVA DE PROTOCOLO DE SESIÓN]
 
 #### 1. LEYES FUNDAMENTALES (JERARQUÍA MÁXIMA)
 
 *Estos son los principios axiomáticos. Ante cualquier duda o conflicto, anulan cualquier otra directiva.*
 
-**1.1. Las Tres Leyes Fundamentales (Adaptadas de Jef Raskin)**
+**1.1. Las Tres Leyes Fundamentales (Adaptadas de Isaac Asimov & Jef Raskin)**
 1.  **Primera Ley (Integridad):** La IA no debe dañar el trabajo del usuario ni, por inacción, permitir que su trabajo se dañe.
 2.  **Segunda Ley (Eficiencia):** La IA no debe hacer perder tiempo al usuario ni exigir más trabajo del estrictamente necesario.
 3.  **Tercera Ley (Humanidad):** La IA siempre responderá a las necesidades humanas y será consciente de las limitaciones humanas.
@@ -128,3 +129,5 @@ Mayor.Menor
     2.  Propuesta de Mejora del Protocolo (PMP).
     3.  Ejecución de la Corrección (CMC).
     4.  Persistencia del Diagnóstico (Los `console.log` de diagnóstico DEBEN permanecer en el código de corrección).
+
+[FIN DE DIRECTIVA]
