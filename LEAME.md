@@ -10,7 +10,22 @@ Colección de herramientas útiles para trabajar con Inteligencia Artificial, pr
 ## Herramientas Disponibles
 
 
-### 1. AI-First-Directive
+
+### 1. The Perkele Protocol
+**Descripción:** Un prompt de sistema de "fuerza bruta" diseñado para evitar la pereza inducida por RLHF (código truncado, arreglos superficiales) utilizando lenguaje imperativo de alta intensidad como un override del sistema.
+
+**Características:**
+- ☠️ **Política de Cero-Truncamiento** - Fuerza la salida completa de archivos.
+- 🧱 **System Override** - Rompe la persona de "asistente amable".
+- ⚡ **Modo Motor Computacional** - Prioriza la corrección técnica sobre el tono.
+
+**Ubicación:** `/AI-Perkele-Protocol/`
+
+👉 Ver [The Perkele Protocol](AI-Perkele-Protocol/README.md)
+
+
+
+### 2. AI-First-Directive
 **Descripción:** Protocolo estricto para colaboración humano-IA en desarrollo de software, diseñado para mantener el control del desarrollador y la integridad del código.
 
 **Principios Centrales:**
@@ -26,10 +41,10 @@ Colección de herramientas útiles para trabajar con Inteligencia Artificial, pr
 
 👉 Ver el LEAME de AI-First-Directive
  para el historial de versiones y los protocolos extendidos.
- 
 
 
-### 2. Project Dumper
+
+### 3. Project Dumper
 **Descripción:** Script PHP que genera un volcado completo de la estructura de directorios y contenido de archivos de texto, ideal para alimentar prompts de IA con el contexto completo de un proyecto.
 
 **Características:**
@@ -42,7 +57,7 @@ Colección de herramientas útiles para trabajar con Inteligencia Artificial, pr
 
 
 
-### ✳️ Créditos
+### ✳️ Credits
 Creado por [Santiago Bustelo](https://www.bustelo.com.ar/).  
 
 

@@ -9,7 +9,22 @@ A collection of useful tools for working with Artificial Intelligence, prompts, 
 ## Available Tools
 
 
-### 1. AI-First-Directive
+
+### 1. The Perkele Protocol
+**Description:** A brute-force system prompt to bypass RLHF-induced laziness (truncated code, superficial fixes) by utilizing high-intensity imperative language as a system override.
+
+**Features:**
+- ☠️ **Zero-Truncation Policy** - Forces full file output.
+- 🧱 **System Override** - Breaks the "polite assistant" persona.
+- ⚡ **Computational Engine Mode** - Prioritizes technical correctness over tone.
+
+**Location:** `/AI-Perkele-Protocol/`
+
+👉 See [The Perkele Protocol](AI-Perkele-Protocol/README.md)
+
+
+
+### 2. AI-First-Directive
 **Description:** A strict protocol for human-AI collaboration in software development, designed to maintain developer control and code integrity.
 
 **Core Principles:**
@@ -27,7 +42,7 @@ A collection of useful tools for working with Artificial Intelligence, prompts, 
 
 
 
-### 2. Project Dumper
+### 3. Project Dumper
 **Description:** PHP script that generates a complete dump of the directory structure and text file content, ideal for feeding AI prompts with the full context of a project.
 
 **Features:**
