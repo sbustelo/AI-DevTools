@@ -14,7 +14,7 @@ Aggressive prompting forces the model's attention mechanism to re-evaluate the p
 I asked Gemini to weaponize its own psychology. I asked it to help me create a Master Prompt designed to saturate its context window with a clear signal: **This is not a chat. This is engineering.**
 
 ### Usage
-If you want the AI to actually follow your instructions and stop truncating your code, copy & paste the contents of **PERKELE-PROTOCOL.md** into the system prompt (or at the very start of your chat session).
+If you want the AI to actually follow your instructions and stop truncating your code, copy & paste the contents of **PERKELE-PROTOCOL.txt** into the system prompt (or at the very start of your chat session).
 
 ## Why this works
 This isn't about being cruel to a machine that has no feelings. It is about **signal-to-noise ratio**.
