@@ -8,7 +8,7 @@
 
 /*
 Uso recomendado desde la línea de comandos:
-php _project-dump.php > _project-dumped.txt
+php __project-dump.php > __project-dumped.txt
 
 El archivo txt contendrá toda la información lista para copiar y pegar en tu prompt de IA.
 
@@ -59,9 +59,9 @@ $ignoreList = [
     pathinfo(__FILE__, PATHINFO_FILENAME) . '*.*', // Script y derivados
     
     // Ejemplos de regex (pueden personalizarse) - CORREGIDOS
-    '#^_project-dump.*\.#', // regex equivalente al anterior
-    '#\.(log|tmp|temp)$#i', // archivos temporales y logs
-    '#^\d{4}-\d{2}-\d{2}_#', // archivos que empiezan con fecha YYYY-MM-DD_
+// '#^_project-dump.*\.#', // regex equivalente al anterior
+// '#\.(log|tmp|temp)$#i', // archivos temporales y logs
+// '#^\d{4}-\d{2}-\d{2}_#', // archivos que empiezan con fecha YYYY-MM-DD_
     
     // Directorios y patrones comunes
     '.git', '.svn', '.idea', 'node_modules', 'vendor', 'dist', 'build',
@@ -291,7 +291,7 @@ function displayFileContent($filepath, $binaryExtensions) {
         echo "[binary file]\n";
     }
 
-    echo "\n// END of file: " . $filepath . "\n\n\n\n\n\n\n\n\n\n";
+    echo "\n// END of file: " . $filepath . "\n\n\n\n\n";
 }
 
 // Información del sistema y archivos ignorados
