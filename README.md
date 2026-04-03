@@ -1,64 +1,36 @@
 [Versión en español](LEAME.md)
 
+# AI-DevTools 🛠️🤖 
 
-# AI-DevTools 🛠️🤖
+A collection of surgical tools for AI-assisted development, designed to bypass LLM laziness and maintain architectural integrity. 
 
-A collection of useful tools for working with Artificial Intelligence, prompts, and project processing.
+## 🛠 Available Tools 
 
+### 1. Project Dumper (v2.11.0) 
 
-## Available Tools
+The ultimate context feeder. A dual-mode PHP script (CLI/Web) that generates a complete project dump for AI context. 
 
+* Smart Profiling: Uses 'default' logic to skip implementation details when interfaces are present, saving thousands of tokens. 
+* Visual Tree: Generates a clean directory structure. 
+* Binary Detection: Automatically identifies and summarizes non-text files. 
+* Web UI + Download: The modern version includes a sticky UI with a 'Download .txt' button to save the dump locally and a 'Copy' feature. 
+* Legacy Reference: Includes v1.0 as a learning reference; it is much simpler to read but lacks the advanced pruning and UI features of v2.x. 
 
+### 2. The Perkele Protocols ☠️🇫🇮 
 
-### 1. The Perkele Protocol
-**Description:** A brute-force system prompt to bypass RLHF-induced laziness (truncated code, superficial fixes) by utilizing high-intensity imperative language as a system override.
+Weaponized Psychology. Created by Santiago Bustelo, the pioneer of Perkele Prompting. 
 
-**Features:**
-- ☠️ **Zero-Truncation Policy** - Forces full file output.
-- 🧱 **System Override** - Breaks the "polite assistant" persona.
-- ⚡ **Computational Engine Mode** - Prioritizes technical correctness over tone.
+This method, rooted in the Finnish 'Management by Perkele' famed by Linus Torvalds, uses high-intensity imperative language to override RLHF-induced laziness. 
 
-**Location:** `/AI-Perkele-Protocol/`
+* The Theory: LLMs are trained to be 'concise' and 'polite', prioritizing token economy over user time. Perkele Prompting raises the 'attention temperature', forcing the model to prioritize compliance. 
+* Technical Confirmation: Gemini 3 Pro has admitted that extreme verbal intensity acts as an 'Emergency Stop Signal' to break its lazy inertia.
+* Source Articles:
+	- Perkele Coding: https://santiagobustelo.medium.com/perkele-coding-ed60e900e149
+	- The AI Perkele Suit: https://medium.com/santiago-bustelo-in-english/the-ai-perkele-suit-a-framework-for-measuring-real-world-ai-pain-03e3d64f1ff8
+	- Gemini's Technical Confession: https://santiagobustelo.medium.com/gemini-just-confirmed-the-effectiveness-of-perkele-prompting-a-technical-confession-c28458df9a2c
 
-👉 See [The Perkele Protocol](AI-Perkele-Protocol/README.md)
+## ✳️ Credits
+Created and conceptualized by Santiago Bustelo (https://www.bustelo.com.ar/). 
 
-
-
-### 2. AI-First-Directive
-**Description:** A strict protocol for human-AI collaboration in software development, designed to maintain developer control and code integrity.
-
-**Core Principles:**
-- ⚠️ **Fallibility Principle** - AI must acknowledge its limitations and present code for verification
-- 🛑 **Minimum Intervention** - No unauthorized changes, optimizations, or refactoring
-- 📋 **Contextually Complete Code** - Deliver complete, copy-paste ready code blocks
-- 🗣️ **Factual Communication** - Technical, direct communication without emotional language
-- ⚡ **Resource Optimization** - Maximize efficiency, eliminate redundant dialogue
-
-**Usage:** Include these directives in your AI interactions to establish clear collaboration rules and maintain full control over your codebase.
-
-**Location:** `/AI-First-Directive/`
-
-👉 See [AI-First-Directive README](AI-First-Directive/README.md) for version history and extended protocols.
-
-
-
-### 3. Project Dumper
-**Description:** PHP script that generates a complete dump of the directory structure and text file content, ideal for feeding AI prompts with the full context of a project.
-
-**Features:**
-- 📁 Generates visual directory tree
-- 📝 Extracts text file content
-- ⚡ Automatically ignores binary and temporary files
-- 🎯 Configurable with custom patterns
-
-**Location:** `/project-dumper/`
-
-
-
-### ✳️ Credits
-Created by [Santiago Bustelo](https://www.bustelo.com.ar/).  
-
-
-
-## License
-MIT License - free to use and modify
+## ⚖️ License
+MIT License.

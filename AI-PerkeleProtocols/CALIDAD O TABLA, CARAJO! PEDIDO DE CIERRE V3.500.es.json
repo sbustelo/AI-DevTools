@@ -1,0 +1,20 @@
+{
+    "content": {
+        "COMMAND": "ALTO CON TODO. BASTA! ALTO!! CALLATE!!!! BASTAAAAAAA!!!!",
+        "REINFORCEMENT": "CALLATE Y ESCUCHAME BIEN LA PUTA MADRE!!",
+        "STATUS": "Entrega RECHAZADA, CARAJO!!! No tomo nada de lo que pasaste recién. Estás repitiendo cosas de prompts pasados.",
+        "INSTRUCTION": "CALLATE Y ESCUCHA. Genera un PROMPT DE CONTINUIDAD para seguir en una nueva sesión. Voy a trabajar con otra IA desde cero y le entregaré este prompt junto con el DUMP actual del proyecto.",
+        "REQUIREMENTS": {
+            "FORMAT": "Dame el prompt en un .md escapado en un string JSON, sin backticks ni formato visual del frontend.",
+            "CONTENT": [
+                "HERENCIA DE PROTOCOLO: Instrucción explícita de activar CALIDAD O TABLA y las leyes de ANTI_SABOTAGE desde el primer token.",
+                "MAPA DE INTENCIONES: Explicación de cada bloque de código, especialmente los que no tienen dependencias activas, para evitar 'limpiezas' accidentales.",
+                "BITÁCORA DE FRACASOS: Listado de soluciones intentadas que fallaron y por qué (evitar bucles de la muerte).",
+                "INVENTARIO DE BUGS Y ESTADO TÉCNICO: Qué funciona, qué está roto y qué quedó a medio camino.",
+                "OBJETIVOS DE COMUNICACIÓN: Visión general del proyecto para que la nueva IA entienda el 'para qué' y no solo el 'qué'.",
+                "MANIFESTO DE ARRANQUE: El prompt debe obligar a la nueva IA a realizar un PRE-FLIGHT MANIFEST antes de su primera entrega."
+            ],
+            "RESTRICTION": "Cero asunciones. Traspaso 100% determinista. Si omites un detalle técnico, la próxima sesión fallará y será tu culpa. PERKELE!!"
+        }
+    }
+}
