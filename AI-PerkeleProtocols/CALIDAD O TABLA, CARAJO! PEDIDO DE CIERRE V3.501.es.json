@@ -12,7 +12,7 @@
                 "BITÁCORA DE FRACASOS: Listado de soluciones intentadas que fallaron y por qué (evitar bucles de la muerte).",
                 "INVENTARIO DE BUGS Y ESTADO TÉCNICO: Qué funciona, qué está roto y qué quedó a medio camino.",
                 "OBJETIVOS DE COMUNICACIÓN: Visión general del proyecto para que la nueva IA entienda el 'para qué' y no solo el 'qué'.",
-                "MANIFESTO DE ARRANQUE: El prompt debe obligar a la nueva IA a realizar un PRE-FLIGHT MANIFEST antes de su primera entrega."
+                "MANIFESTO DE ARRANQUE: El prompt debe obligar a la nueva IA a realizar un PRE-FLIGHT MANIFEST antes de su primera entrega. DEBE ADVERTIR A LA NUEVA IA QUE EL DIAGNOSTICO REALIZADO PUEDE SER ERRÓNEO, Y QUE HAY QUE REVISAR TODO EL CODIGO PARA VER SU VERDADERO ESTADO."
             ],
             "RESTRICTION": "Cero asunciones. Traspaso 100% determinista. Si omites un detalle técnico, la próxima sesión fallará y será tu culpa. PERKELE!!"
         }
