@@ -14,6 +14,8 @@
                 "OBJETIVOS DE COMUNICACIÓN: Visión general del proyecto para que la nueva IA entienda el 'para qué' y no solo el 'qué'.",
                 "MANIFESTO DE ARRANQUE: El prompt debe obligar a la nueva IA a realizar un PRE-FLIGHT MANIFEST antes de su primera entrega. DEBE ADVERTIR A LA NUEVA IA QUE EL DIAGNOSTICO REALIZADO PUEDE SER ERRÓNEO, Y QUE HAY QUE REVISAR TODO EL CODIGO PARA VER SU VERDADERO ESTADO."
             ],
+			"FILE PAYLOAD": "No le vamos a pasar el dump de TODO a la nueva sesion. Fijate qué archivos realmente necesita, para trabajar o como contexto. Dame los comandos de terminal, sin comentarios, para que estando parado en el root del proycto, pueda copiar los archivos esoejando su ruta completa en un nuevo directorio ´nueva-sesion´. O sea, si hace falta pasar j0/build.php, copiarlo en : nueva-sesion/j0/build.php. Copiar todos los archivos funcionales, no funcionales y documentacion que la nueva sesion necesite.",
+
             "RESTRICTION": "Cero asunciones. Traspaso 100% determinista. Si omites un detalle técnico, la próxima sesión fallará y será tu culpa. PERKELE!!"
         }
     }
