@@ -6,6 +6,7 @@ All notable changes to **AI-DevTools** (`ai0` and `AI-PerkeleProtocols`) are doc
 
 ## 5.0.01 • 21/nov/2026
 
+- **KaTeX guards:** PHP guards for Gemini 4 brand new KaTeX code corruption quirk. Perkele Architect Protocol — Quality, or That's a Paddlin' updated to v4.1.8.
 - **Decoupled Public Entry Point & Lazy Domain Loader (`j0/api.php`, `j0/core/j0-use.php`):**
   - Added `j0/api.php` (`j0_api()`) as a single public boundary façade so consumer projects locate one file and resolve framework capabilities without hardcoding internal `j0` directory paths (`core/`, `tooling/`, `src/`).
   - Added `j0/core/j0-use.php` (`j0_use()`, `j0_root()`, `j0_asset_path()`, `j0_asset_dir()`) to lazily load module domains (`core`, `tooling`, `vfs`, `all`) and resolve logical client assets while keeping every individual `j0` PHP module 100% standalone-includable via `require_once`.

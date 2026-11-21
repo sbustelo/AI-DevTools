@@ -1,5 +1,5 @@
 <?php
-// PATH: ai0-0010/tools/patcher/patcher-parser.php
+// PATH: ai0/tools/patcher/patcher-parser.php
 declare(strict_types=1);
 
 final class PatcherParser
@@ -20,9 +20,21 @@ final class PatcherParser
         $i = 0;
 
         while ($i < $total) {
+            if (self::isOperationHeader(trim($lines[$i]))) {
+                break;
+            }
+            $i++;
+        }
+
+        while ($i < $total) {
             $line = trim($lines[$i]);
 
-            if (preg_match('/^===\s*MOVE:\s*(.+?)\s*->\s*(.+?)\s*===$/', $line, $mm)) {
+            if ($line === '' || preg_match('/^`{3,}\z/', $line) === 1) {
+                $i++;
+                continue;
+            }
+
+            if (preg_match('/^===\s*MOVE:\s*(.+?)\s*->\s*(.+?)\s*===\z/', $line, $mm)) {
                 $operations[] = [
                     'type' => 'MOVE',
                     'path' => trim($mm[1]),
@@ -32,7 +44,7 @@ final class PatcherParser
                 continue;
             }
 
-            if (preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD):\s*(.+?)\s*===$/', $line, $m)) {
+            if (preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD):\s*(.+?)\s*===\z/', $line, $m)) {
                 $type = $m[1];
                 $path = trim($m[2]);
 
@@ -50,11 +62,12 @@ final class PatcherParser
 
                 while ($i < $total) {
                     $trimmedLine = trim($lines[$i]);
-                    if ($type === 'CREATE' && preg_match('/^(`{3,})/', $trimmedLine,$fm)) {
+                    if ($type === 'CREATE' && preg_match('/^(`{3,})/', $trimmedLine, $fm)) {
                         $ticks = strlen($fm[1]);
-                        if (!$inFence) {$inFence = true;
-                            $fenceLen =$ticks;
-                        } elseif ($ticks >= $fenceLen &&$trimmedLine === str_repeat('`', $ticks)) {
+                        if (!$inFence) {
+                            $inFence = true;
+                            $fenceLen = $ticks;
+                        } elseif ($ticks >= $fenceLen && $trimmedLine === str_repeat('`', $ticks)) {
                             $inFence = false;
                             $fenceLen = 0;
                         }
@@ -94,6 +107,7 @@ final class PatcherParser
                 continue;
             }
 
+            $errors[] = 'Unexpected line outside _ai0 block (line ' . ($i + 1) . '): ' . $line;
             $i++;
         }
 
@@ -154,6 +168,14 @@ final class PatcherParser
         }
 
         return $hunks;
+    }
+
+    private static function isOperationHeader(string $line): bool
+    {
+        if (preg_match('/^===\s*MOVE:\s*(.+?)\s*->\s*(.+?)\s*===\z/', $line) === 1) {
+            return true;
+        }
+        return preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD):\s*(.+?)\s*===\z/', $line) === 1;
     }
 
     /**
