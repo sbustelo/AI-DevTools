@@ -4,6 +4,20 @@ All notable changes to **AI-DevTools** (`ai0` and `AI-PerkeleProtocols`) are doc
 
 ---
 
+## 5.0.01 • 21/nov/2026
+
+- **Decoupled Public Entry Point & Lazy Domain Loader (`j0/api.php`, `j0/core/j0-use.php`):**
+  - Added `j0/api.php` (`j0_api()`) as a single public boundary façade so consumer projects locate one file and resolve framework capabilities without hardcoding internal `j0` directory paths (`core/`, `tooling/`, `src/`).
+  - Added `j0/core/j0-use.php` (`j0_use()`, `j0_root()`, `j0_asset_path()`, `j0_asset_dir()`) to lazily load module domains (`core`, `tooling`, `vfs`, `all`) and resolve logical client assets while keeping every individual `j0` PHP module 100% standalone-includable via `require_once`.
+- **Patcher KaTeX Corruption Scanner (`ai0/tools/patcher/patcher-katex-guard.php`, `patcher-engine.php`, `patcher-view.php`):**
+  - Added `PatcherKatexGuard` to audit incoming `CREATE` and `PATCH` (`START`, `END`, `REPLACE`) payloads on code files for chat clipboard math-parser artifacts (`\vert{}`, `\%`, `\&`, `\#`, `\_`, and LaTeX math commands), skipping `.md` and `.tex` documentation files.
+  - Wired non-blocking `warnings` into `PatcherEngine::execute()` and rendered them in `patcher-view.php` under `Batch Result`.
+- **Protocol Output Guardrail (`AI-PerkeleProtocols/perkele-architect.en.md` v4.1.3):**
+  - Enforced single-condition `if` splits in PHP blocks and pure string concatenation in JS/CSS/HTML blocks to prevent chat KaTeX inline-math collisions on copy.
+
+
+---
+
 ## [5.0] — `ai0` Integration & Perkele Architect Protocol (2026-11-21)
 
 ### Added

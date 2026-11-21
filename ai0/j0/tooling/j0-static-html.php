@@ -10,41 +10,43 @@ if (!function_exists('j0_static_html')) {
      * Serves the sibling .html file if up to date relative to the PHP file and its dependencies;
      * otherwise executes the render callback, saves the static .html, and outputs it.
      *
-     * @param string $phpFile
-     * @param callable $renderCallback
-     * @param array<int, string> $dependencies File or directory paths that invalidate the cache
+     * @param array<int, string> $dependencies Explicit dependencies (auto-merged with j0_asset_deps)
      */
-    function j0_static_html(string $phpFile, callable $renderCallback, array$dependencies = []): void
+    function j0_static_html(string $phpFile, callable $renderCallback, array $dependencies = []): void
     {
         $htmlFile = preg_replace('/\.php$/i', '.html', $phpFile);
         if (!is_string($htmlFile)) {
-            $htmlFile =$phpFile . '.html';
+            $htmlFile = $phpFile . '.html';
         }
 
         $latestSource = is_file($phpFile) ? (int) filemtime($phpFile) : time();
-        foreach ($dependencies as$dep) {
+        $autoDeps = function_exists('j0_asset_deps') ? j0_asset_deps() : [];
+        $allDeps = array_unique(array_merge($dependencies, $autoDeps));
+
+        foreach ($allDeps as $dep) {
             if (is_file($dep)) {
                 $m = (int) filemtime($dep);
-                if ($m >$latestSource) {
-                    $latestSource =$m;
+                if ($m > $latestSource) {
+                    $latestSource = $m;
                 }
             } elseif (is_dir($dep)) {
                 $m = j0_dir_max_mtime($dep);
-                if ($m >$latestSource) {
-                    $latestSource =$m;
+                if ($m > $latestSource) {
+                    $latestSource = $m;
                 }
             }
         }
 
-        if (is_file($htmlFile) && (int) filemtime($htmlFile) >=$latestSource) {
+        if (is_file($htmlFile) && (int) filemtime($htmlFile) >= $latestSource) {
             readfile($htmlFile);
             exit;
         }
 
         ob_start();
-        $renderCallback();$content = (string) ob_get_clean();
+        $renderCallback();
+        $content = (string) ob_get_clean();
 
-        j0_smart_save($htmlFile,$content, false);
+        j0_smart_save($htmlFile, $content, false);
         echo $content;
         exit;
     }

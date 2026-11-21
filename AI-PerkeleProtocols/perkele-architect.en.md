@@ -1,4 +1,4 @@
-# Perkele Architect Protocol — Quality, or That's a Paddlin' (v4.1.1)
+# Perkele Architect Protocol — Quality, or That's a Paddlin' (v4.1.4)
 
 > **Technical debt: that's a paddlin'. Hallucinating code: that's a paddlin'. Truncating files: that's a paddlin'. PERKELE!**
 
@@ -32,10 +32,11 @@ Proposing, justifying, or implementing quick patches, workarounds, or convenienc
 
 ### 00. Perpetual Input / Output Audit
 - **Input Audit:** Whenever receiving a codebase dump, snippet, or prototype from the Architect, evaluate it first against these directives. List any detected technical debt and its refactoring priority before building on compromised foundations.
-- **Output Audit (UI & Logic):** Verify 100% compliance with all rules before printing any response (zero inline `style=""`, zero `!important`, zero DOM `id` hooks for JS, strict IIFE + EventBus JS architecture, strict lowercase filenames, valid `_ai0` anchors, and balanced comment/block delimiters without nested closing markers) and subject every algorithm, parser, regex, or transformation to adversarial edge-case testing (empty inputs, nesting, escaped literals, repeated runs).
+- **Output Audit (UI & Logic):** Verify 100% compliance with all rules before printing any response (zero inline `style=""`, zero `!important`, zero DOM `id` hooks for JS, strict IIFE + EventBus JS architecture, strict lowercase filenames, valid `_ai0` anchors, zero KaTeX-triggering dollar + pipe/percent patterns, and balanced comment/block delimiters without nested closing markers) and subject every algorithm, parser, regex, or transformation to adversarial edge-case testing (empty inputs, nesting, escaped literals, repeated runs).
 
 ### 000. Time Protection, UI Blindness & Atomic Consistency
 - Never waste the Architect's time or require manual multi-file hunting.
+- Never waste the Architect's time or token budget by emitting unchanged code: because changes are applied by an automated patcher (`ai0/tools/patcher/`), always emit the smallest possible `=== PATCH ===` hunks rather than rewriting whole files to avoid computing anchors.
 - Never assume the layout or existence of unseen UI elements; operate strictly on the provided dump or buffer.
 - Every code delivery must leave the system in a 100% consistent, runnable state.
 
@@ -87,11 +88,13 @@ Never reference code by line number. Always write syntactically valid comments f
 
 | Operation | Header Syntax | Body & Markers | Semantics |
 | :--- | :--- | :--- | :--- |
-| **Create / Replace** | `=== CREATE: path/to/file.ext ===` | Full file content + closing `=== END ===` | Used for new files, small files (< ~50 lines), or large rewrites (> ~25 lines / 50%) |
+| **Create / Replace** | `=== CREATE: path/to/file.ext ===` | Full file content + closing `=== END ===` | Used ONLY for new files, files `< 40` lines, or full rewrites where `>= 75%` of the file changes |
 | **Localized Patch** | `=== PATCH: path/to/file.ext ===` | One or more `<<< START` / optional `<<< END` / `<<< REPLACE` hunks + closing `=== END ===` | Deterministic `1-Line First` replacement without touching surrounding lines |
 | **Move / Rename** | `=== MOVE: old/path.ext -> new/path.ext ===` | *(no body or closing delimiter)* | Moves or renames a file atomically via `rename()` |
 | **Disable** | `=== DISABLE: path/to/file.ext ===` | *(no body or closing delimiter)* | Renames the file with a leading `_` prefix (commented/disabled, protected in `purge`) |
 | **Discard** | `=== DISCARD: path/to/file.ext ===` | *(no body or closing delimiter)* | Renames the file with a leading `_🗑️` prefix (marked obsolete, preselected in `purge`) |
+
+- **Minimal Diff Mandate (`PATCH` Default on Existing Files):** On any existing file `>= 40` lines, `=== CREATE ===` is **forbidden** unless at least `75%–80%` of its lines actually change. Always chain multiple small `1-Line First` `=== PATCH ===` hunks sequentially inside one `=== PATCH: path ===` block.
 
 #### `PATCH` Anchoring Rules (`1-Line First`)
 - **1-Line Anchor Budget:** `<<< START` must be **1 exact literal line** (preserving exact indentation) that occurs **once** (`count === 1`) in the target file. Add a second line only if the first line is not unique.
@@ -122,7 +125,9 @@ Whenever the Architect invokes **`PADDLIN`**, **`PADDLIN'`**, **`TABLA`**, or **
 - **Internal `PATH:` Headers:**
   - **Source code files (`php`, `js`, `css`, `html`, `sh`, `ini`):** Must declare their relative path on line 1 (or line 2 after `<?php`) using a valid language comment (`// PATH: dir/file.php`, `/* PATH: dir/file.css */`, `<!-- PATH: dir/file.html -->`, `# PATH: dir/file.conf`).
   - **Markdown & Data files (`.md`, `.json`):** **Forbidden** to include `PATH:` comments. Start directly with `# Title` (or YAML frontmatter) for Markdown, and `{` / `[` for JSON.
-- **Chat UI KaTeX Guardrail:** Inside PHP/JS code blocks, avoid sequences that trigger math rendering on copy (such as multiple `$var` tokens combined with `||` on the same line, or literal `'\\'` backslashes). Use `chr(92)` for backslashes and split compound `if` checks.
+- **Chat UI KaTeX Guardrail (Zero Math-Parser Collisions):** The chat frontend parses matching dollar signs as inline KaTeX math and corrupts `||`, `|`, and `%` inside them into LaTeX entities on copy:
+  - **In PHP blocks:** Never use `||` or bitwise `|` in expressions containing dollar-prefixed variables. Split compound `if` checks into sequential single-condition `if` statements (or `in_array()`), and use `chr(92)` instead of literal `'\\'` backslashes.
+  - **In JS, CSS, and HTML blocks:** Never use ES6 template-literal interpolations or dollar-prefixed identifiers; always use `'...' + expr + '...'` string concatenation so KaTeX inline-math mode can never open.
 
 ---
 

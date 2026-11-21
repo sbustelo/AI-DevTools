@@ -12,7 +12,8 @@ if (!function_exists('j0_build_bundle')) {
      * Scans, concatenates, saves <name>.<ext>, minifies, and saves <name>.min.<ext>.
      *
      * @param array{
-     *   src_dir: string,
+     *   src_dir?: string,
+     *   sources?: string|array<int, string>,
      *   out_file: string,
      *   ext: string,
      *   minify?: bool,
@@ -24,7 +25,6 @@ if (!function_exists('j0_build_bundle')) {
      */
     function j0_build_bundle(array $options): array
     {
-        $srcDir = $options['src_dir'];
         $outFile = $options['out_file'];
         $ext = strtolower(ltrim($options['ext'], '.'));
         $doMinify = $options['minify'] ?? true;
@@ -32,7 +32,19 @@ if (!function_exists('j0_build_bundle')) {
         $header = $options['header'] ?? '';
         $markers = $options['markers'] ?? true;
 
-        $files = j0_scan_files($srcDir, [$ext]);
+        $sources = $options['sources'] ?? (isset($options['src_dir']) ? [$options['src_dir']] : []);
+        $files = [];
+
+        foreach ((array) $sources as $src) {
+            $src = rtrim((string) $src, '/');
+            if (is_file($src) && str_ends_with(strtolower($src), '.' . $ext)) {
+                $files[] = $src;
+            } elseif (is_dir($src)) {
+                $files = array_merge($files, j0_scan_files($src, [$ext]));
+            }
+        }
+
+        $files = array_unique($files);
         if ($files === []) {
             return ['ok' => false, 'files_count' => 0, 'bundle_file' => $outFile, 'min_file' => null, 'reason' => 'no_sources'];
         }

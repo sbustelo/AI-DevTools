@@ -38,6 +38,17 @@ function patcher_render_view(array $vm): void
                 </ul>
             <?php endif; ?>
 
+            <?php if (!empty($execResult['warnings'])): ?>
+                <div class="j0ui-alert-inline j0ui-alert-warning">
+                    <strong>Warnings (KaTeX / payload audit):</strong>
+                    <ul class="j0ui-mono">
+                        <?php foreach ($execResult['warnings'] as $warn): ?>
+                            <li><?= htmlspecialchars($warn, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
             <?php if ($execResult['errors'] !== []): ?>
                 <div class="j0ui-alert-inline j0ui-alert-danger">
                     <strong>Failed operations (individually rolled back):</strong>

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/j0/tooling/j0-backup.php';
+require_once __DIR__ . '/patcher-katex-guard.php';
 
 final class PatcherEngine
 {
@@ -24,9 +25,15 @@ final class PatcherEngine
     public function execute(array $operations): array
     {
         $applied = [];
+        $warnings = [];
         $errors = [];
 
         foreach ($operations as $op) {
+            $opWarnings = PatcherKatexGuard::scanOperation($op);
+            if ($opWarnings !== []) {
+                $warnings = array_merge($warnings, $opWarnings);
+            }
+
             $type = (string) ($op['type'] ?? '');
             $relPath = (string) ($op['path'] ?? '');
 
@@ -50,6 +57,7 @@ final class PatcherEngine
         return [
             'timestamp' => $this->timestamp,
             'applied'   => $applied,
+            'warnings'  => $warnings,
             'errors'    => $errors,
         ];
     }
