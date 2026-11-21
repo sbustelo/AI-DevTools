@@ -1,0 +1,39 @@
+{
+    "categories": {
+        "discard": {
+            "label": "Discarded (_🗑️ / __)",
+            "prefix_state": "discard",
+            "default_excluded": true
+        },
+        "backup": {
+            "label": "Backups & Archives (_📦)",
+            "prefix_state": "backup",
+            "default_excluded": true
+        },
+        "disabled": {
+            "label": "Disabled / System (_)",
+            "prefix_state": "disabled",
+            "default_excluded": true
+        },
+        "vendors": {
+            "label": "Dependencies (vendor / node_modules)",
+            "pattern": "/^(vendor|node_modules)$/i",
+            "default_excluded": true
+        },
+        "dotfiles": {
+            "label": "Hidden / Git (.git / .*)",
+            "pattern": "/^\\./",
+            "default_excluded": true
+        },
+        "build_cache": {
+            "label": "Build / Logs / Cache (dist / logs / tmp)",
+            "pattern": "/^(dist|build|logs|cache|tmp)$/i",
+            "default_excluded": true
+        }
+    },
+    "binary_extensions": [
+        "png", "jpg", "jpeg", "gif", "webp", "avif", "ico", "psd", "ai",
+        "mp4", "webm", "mov", "mp3", "wav", "pdf", "zip", "tar", "gz",
+        "sqlite", "db", "woff", "woff2", "ttf", "otf", "eot", "app", "scpt"
+    ]
+}

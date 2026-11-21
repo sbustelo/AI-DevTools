@@ -1,0 +1,34 @@
+{
+    "system_markers": {
+        "_🗑️": {
+            "state": "discard",
+            "actor": "system",
+            "excluded_by_default": true,
+            "purge_preselected": true,
+            "label": "Discarded (_🗑️)"
+        },
+        "_📦": {
+            "state": "backup",
+            "actor": "system",
+            "excluded_by_default": true,
+            "purge_preselected": true,
+            "label": "Backups & Archives (_📦)"
+        }
+    },
+    "human_markers": {
+        "__": {
+            "state": "discard",
+            "actor": "human",
+            "excluded_by_default": true,
+            "purge_preselected": true,
+            "label": "Quick-Discarded (__)"
+        },
+        "_": {
+            "state": "disabled",
+            "actor": "human",
+            "excluded_by_default": true,
+            "purge_preselected": false,
+            "label": "Disabled / Private (_)"
+        }
+    }
+}

@@ -1,0 +1,70 @@
+/* PATH: ai0-003/ui/modules/0020-tree-browser--ui-widget/c0020-tree-browser.css */
+.j0ui-tree-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--j0ui-border-subtle);
+}
+
+.j0ui-tree-root,
+.j0ui-tree-branch {
+    list-style: none;
+    margin: 0;
+    padding-left: 18px;
+}
+
+.j0ui-tree-root {
+    padding-left: 0;
+    max-height: 62vh;
+    overflow-y: auto;
+}
+
+.j0ui-tree-node {
+    margin: 2px 0;
+}
+
+.j0ui-tree-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    border-radius: var(--j0ui-radius-sm);
+}
+
+.j0ui-tree-row:hover {
+    background: var(--j0ui-bg-hover);
+}
+
+.j0ui-tree-caret {
+    width: 16px;
+    border: none;
+    background: transparent;
+    color: var(--j0ui-text-muted);
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--j0ui-font-mono);
+    font-size: 11px;
+}
+
+.j0ui-tree-caret-spacer {
+    display: inline-block;
+    width: 16px;
+}
+
+.j0ui-tree-label {
+    font-family: var(--j0ui-font-mono);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.j0ui-tree-node[data-j0-excluded="true"] > .j0ui-tree-row .j0ui-tree-label {
+    color: var(--j0ui-text-muted);
+}
+
+.j0ui-tree-node[data-j0-collapsed="true"] > .j0ui-tree-branch {
+    display: none;
+}

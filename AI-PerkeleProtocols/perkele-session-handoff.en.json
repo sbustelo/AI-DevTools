@@ -1,0 +1,19 @@
+{
+    "command": "HALT ALL OUTPUT. STOP IMMEDIATELY.",
+    "reinforcement": "PERKELE! STOP AND READ CAREFULLY.",
+    "status": "DELIVERY REJECTED. Context saturation or loop drift detected. Do not recycle previous prompts.",
+    "instruction": "Generate a deterministic CONTINUITY HANDOFF PROMPT to resume work in a fresh AI session from zero, accompanied by the exact project context.",
+    "requirements": {
+        "format": "Deliver the continuity prompt inside a single raw text/markdown block escaped cleanly so it can be copied in one click without frontend parsing breakage.",
+        "content": [
+            "PROTOCOL INHERITANCE: Explicit instruction to activate the Perkele Architect Protocol (Quality, or That's a Paddlin') and Anti-Bullshit epistemic rules from token 1.",
+            "INTENTION MAP: Explanation of every module and file—especially decoupled primitives without active callers yet—to prevent accidental cleanup or deletion.",
+            "FAILURE LOG: List of attempted approaches that failed and their exact technical root cause to prevent repeating failure loops.",
+            "TECHNICAL STATE & BUG INVENTORY: What is verified working, what is broken, and what remains incomplete.",
+            "COMMUNICATION & ARCHITECTURAL GOALS: High-level purpose of the system so the next instance understands the 'why' behind the 'what'.",
+            "STARTUP MANIFEST: Require the fresh AI instance to output a PRE-FLIGHT MANIFEST before its first code delivery, explicitly warning that prior diagnostics may be flawed and that all supplied files must be audited directly to verify true state."
+        ],
+        "file_payload": "Do NOT dump the entire repository blindly. Identify the exact subset of functional files, non-functional/broken files, and documentation required for the next session. Output raw terminal commands (no comments) that mirror their full relative directory paths into a new folder named 'next-session/' (e.g., copying 'j0/php/j0-build.php' to 'next-session/j0/php/j0-build.php').",
+        "restriction": "Zero assumptions. 100% deterministic handoff. Omitting any critical technical constraint will cause the next session to fail. PERKELE!"
+    }
+}

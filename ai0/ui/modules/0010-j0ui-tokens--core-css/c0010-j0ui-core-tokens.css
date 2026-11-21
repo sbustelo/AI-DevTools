@@ -1,0 +1,40 @@
+/* PATH: ai0-003/ui/modules/0010-j0ui-tokens--core-css/c0010-j0ui-core-tokens.css */
+:root {
+    --j0ui-core-bg-surface: #14171d;
+    --j0ui-core-bg-field: #0d0f13;
+    --j0ui-core-border: #282d38;
+    --j0ui-core-text-main: #e6e9ef;
+    --j0ui-core-text-muted: #8b93a7;
+    --j0ui-core-accent: #3b82f6;
+    --j0ui-core-radius: 6px;
+
+    --j0ui-bg-app: var(--j0ui-core-bg-field);
+    --j0ui-bg-window: var(--j0ui-core-bg-surface);
+    --j0ui-bg-panel: #1a1e26;
+    --j0ui-bg-hover: #212631;
+    --j0ui-border-subtle: var(--j0ui-core-border);
+    --j0ui-text-main: var(--j0ui-core-text-main);
+    --j0ui-text-muted: var(--j0ui-core-text-muted);
+    --j0ui-accent: var(--j0ui-core-accent);
+    --j0ui-text-on-accent: #ffffff;
+    --j0ui-danger: #ef4444;
+    --j0ui-success: #10b981;
+    --j0ui-warning: #f59e0b;
+    --j0ui-radius: var(--j0ui-core-radius);
+    --j0ui-radius-sm: 4px;
+    --j0ui-space-sm: 8px;
+    --j0ui-space-md: 16px;
+    --j0ui-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    --j0ui-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html[data-theme="light"] {
+    --j0ui-core-bg-surface: #ffffff;
+    --j0ui-core-bg-field: #f3f4f6;
+    --j0ui-core-border: #d1d5db;
+    --j0ui-core-text-main: #111827;
+    --j0ui-core-text-muted: #6b7280;
+    --j0ui-core-accent: #2563eb;
+    --j0ui-bg-panel: #f9fafb;
+    --j0ui-bg-hover: #e5e7eb;
+}

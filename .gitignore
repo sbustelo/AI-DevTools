@@ -27,3 +27,6 @@ __project-dumped.txt
 # Ignorar archivos de dump generados
 *.dump
 *.nodump
+
+# Ignorar archivos y directorios operativos con prefijo _ (_j0-temp, _ai0config, _📦, _🗑️, __, etc.)
+_*

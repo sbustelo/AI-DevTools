@@ -1,36 +1,65 @@
 [Versión en español](LEAME.md)
 
-# AI-DevTools 🛠️🤖 
+# AI-DevTools 🛠️🤖
 
-A collection of surgical tools for AI-assisted development, designed to bypass LLM laziness and maintain architectural integrity. 
+<p align="center">
+  <img src="./docs/assets/sb-quality-or-paddlin.png" alt="Quality or That's a Paddlin'" width="512">
+</p>
 
-## 🛠 Available Tools 
+A zero-dependency suite of surgical tools and operational protocols for AI-assisted software development—designed to eliminate LLM laziness, prevent context drift, and enforce zero technical debt.
 
-### 1. Project Dumper (v2.11.0) 
+---
 
-The ultimate context feeder. A dual-mode PHP script (CLI/Web) that generates a complete project dump for AI context. 
+## 🛠 Repository Contents
 
-* Smart Profiling: Uses 'default' logic to skip implementation details when interfaces are present, saving thousands of tokens. 
-* Visual Tree: Generates a clean directory structure. 
-* Binary Detection: Automatically identifies and summarizes non-text files. 
-* Web UI + Download: The modern version includes a sticky UI with a 'Download .txt' button to save the dump locally and a 'Copy' feature. 
-* Legacy Reference: Includes v1.0 as a learning reference; it is much simpler to read but lacks the advanced pruning and UI features of v2.x. 
+### 1. `ai0/` — Local AI Development Suite & `j0` Primitives
+Drop-in PHP 8.2+ and Vanilla JS tooling (runs on macOS Valet, Apache, Nginx, or PHP built-in server with zero external dependencies):
 
-### 2. The Perkele Protocols ☠️🇫🇮 
+- **`dumper` (`ai0dump.php`):** Interactive checkbox tree with regex exclusion categories, **Show excluded only** filter, binary summaries, and one-click copy/download context generation.
+- **`patcher` (`ai0patch.php`):** Atomic multi-file applier supporting `CREATE`, `PATCH` (`1-Line First` anchoring), `MOVE`, `DISABLE` (`_`), and `DISCARD` (`_🗑️`), with automatic `_📦` backups and `php -l` syntax validation.
+- **`restore` (`ai0restore.php`):** Discovers `_📦` timestamped backup batches across the project and restores previous versions in one click.
+- **`purge` (`ai0purge.php`):** Reclaims disk space by preselecting discarded (`_🗑️`, `__`) and backup (`_📦`) items while keeping human-disabled (`_*`) files protected by default.
+- **`j0/` 3-Layer Modular Suite (`core/`, `tooling/`, `src/`):**
+  - `j0/core/`: Unified `01-j0kernel.js` (EventBus + Service Registry + passive Logger) and foundational PHP primitives (`closest`, `config`, `prefix`, `scan`).
+  - `j0/tooling/`: Composable build, atomic save, backup, asset tag, and static HTML utilities (`ai0build.php` stub).
+  - `j0/src/`: Vertical polyglot OS modules (`vfs/` for KV + SSR cookie sync + IndexedDB blobs/docs, and `vfs--remote/` capability plugin for `j0auth` cloud sync).
 
-Weaponized Psychology. Created by Santiago Bustelo, the pioneer of Perkele Prompting. 
+#### Quick Start (`ai0`)
+Link `ai0/` into any project root as `_ai0` (natively excluded by `ai0` and `j0` scanners/builders; add `_*` to your project's `.gitignore` and FTP ignore rules):
 
-This method, rooted in the Finnish 'Management by Perkele' famed by Linus Torvalds, uses high-intensity imperative language to override RLHF-induced laziness. 
+```bash
+cd /path/to/your-project
+ln -s /path/to/AI-DevTools/ai0 _ai0
+echo "_*" >> .gitignore
+```
 
-* The Theory: LLMs are trained to be 'concise' and 'polite', prioritizing token economy over user time. Perkele Prompting raises the 'attention temperature', forcing the model to prioritize compliance. 
-* Technical Confirmation: Gemini 3 Pro has admitted that extreme verbal intensity acts as an 'Emergency Stop Signal' to break its lazy inertia.
-* Source Articles:
-	- Perkele Coding: https://santiagobustelo.medium.com/perkele-coding-ed60e900e149
-	- The AI Perkele Suit: https://medium.com/santiago-bustelo-in-english/the-ai-perkele-suit-a-framework-for-measuring-real-world-ai-pain-03e3d64f1ff8
-	- Gemini's Technical Confession: https://santiagobustelo.medium.com/gemini-just-confirmed-the-effectiveness-of-perkele-prompting-a-technical-confession-c28458df9a2c
+Open `http://your-project.test/_ai0/` or copy any portable stub from `ai0/stubs/` into any subdirectory: `ai0dump.php`, `ai0restore.php`, and `ai0purge.php` scope scans to that subtree, `ai0build.php` compiles local CSS/JS bundles in that folder, and `ai0patch.php` applies project-root-relative `_ai0` blocks.
 
-## ✳️ Credits
-Created and conceptualized by Santiago Bustelo (https://www.bustelo.com.ar/). 
+---
+
+### 2. `AI-PerkeleProtocols/` — LLM Behavioral & Epistemic Overrides ☠️🇫🇮
+System prompts and skills engineered by **Santiago Bustelo** (inspired by Linus Torvalds' *Management by Perkele*) to counter RLHF token-saving shortcuts:
+
+- **`perkele-architect.en.md`:** Primary coding & architecture skill (*Quality, or That's a Paddlin'*).
+- **`perkele-session-handoff.en.json`:** Deterministic session continuity generator for saturated context windows.
+- **`PERKELE-PHANTOM-WRITER-V2.02.es.md`:** Style-preserving ghostwriting protocol (Spanish).
+- **`anti-bullshit protocol.en.txt` / `.es.txt`:** Epistemic anti-hallucination guardrails.
+
+---
+
+### 3. `docs/` — Technical Specifications
+- [`docs/architecture.md`](docs/architecture.md) — System architecture, 4-level `[_]ai0config` cascade, and `.php` vs. `.json` security rules.
+- [`docs/j0-naming-conventions.md`](docs/j0-naming-conventions.md) — Prefix taxonomy (`_`, `__`, `_🗑️` *Discard*, `_📦`) and pseudo-BEM module conventions.
+- [`docs/j0-primitives.md`](docs/j0-primitives.md) — API reference for standalone `j0` PHP and JS modules.
+- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — Full version history reconstructed from Git.
+
+---
+
+## ✳️ Credits & Articles
+Created and conceptualized by **Santiago Bustelo** (https://www.bustelo.com.ar/).
+- Perkele Coding: https://santiagobustelo.medium.com/perkele-coding-ed60e900e149
+- The AI Perkele Suit: https://medium.com/santiago-bustelo-in-english/the-ai-perkele-suit-a-framework-for-measuring-real-world-ai-pain-03e3d64f1ff8
+- Gemini's Technical Confession: https://santiagobustelo.medium.com/gemini-just-confirmed-the-effectiveness-of-perkele-prompting-a-technical-confession-c28458df9a2c
 
 ## ⚖️ License
-MIT License.
+[Apache 2.0 / CC BY 4.0 License](LICENSE)
