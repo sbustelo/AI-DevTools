@@ -1,32 +1,143 @@
-# Ignorar archivos temporales del sistema
-.DS_Store
+# ============================================================
+# j0 gitignore patterns
+# ============================================================
+
+
+# ------------------------------------------------------------
+# j0 OPERATIONAL FILES
+# ------------------------------------------------------------
+# Files/dirs prefixed with _ are "commented out" by j0 convention
+# (_j0-temp, _ai0config, _📦, _🗑️, __, etc.)
+_*
+
+
+# ------------------------------------------------------------
+# HIDDEN FILES (UNIX convention)
+# ------------------------------------------------------------
+# Anything starting with a dot is ignored by default.
+# This covers a lot of security practices automatically
+# (.env, .aws/, .gcp/, .azure/, .terraform/, .docker/,
+#  .npmrc, .pypirc, .gem/, etc.)
+.*
+# Exceptions: these hidden files must be versioned.
+!.gitignore
+!.env.example
+!.env.*.example
+
+
+# ------------------------------------------------------------
+# GITIGNORE MIRRORS / SYMLINKS
+# ------------------------------------------------------------
+# Matches: gitignore, gitignore.txt, gitignore (symlink...).txt, etc.
+gitignore*
+
+
+# ------------------------------------------------------------
+# LOCAL / PRIVATE OVERRIDES
+# ------------------------------------------------------------
+# Files/dirs marked as .local or .private
+*.local*
+*.private*
+
+
+# ------------------------------------------------------------
+# OS / DEPENDENCIES / LOGS
+# ------------------------------------------------------------
+# OS junk
 Thumbs.db
 
-# Ignorar directorios de dependencias
+# Dependencies
 vendor/
 node_modules/
 
-# Ignorar archivos de IDE
-.idea/
-.vscode/
-
-# Ignorar logs y archivos temporales
+# Logs & temp files
 *.log
 *.tmp
 *.temp
 
-# Ignorar symlinks a gitignore
-gitignore\ \(symlink\ al\ archivo\ oculto\).txt
-gitignore.txt
-# Ignorar cualquier archivo que empiece con "gitignore" y tenga .txt
-gitignore*.txt
 
-# Ignorar archivos de dump internos/auxiliares (con doble guión bajo para este proyecto)
-__project-dump.php
-__project-dumped.txt
-# Ignorar archivos de dump generados
-*.dump
-*.nodump
+# ============================================================
+# SECURITY (common practices)
+# ============================================================
 
-# Ignorar archivos y directorios operativos con prefijo _ (_j0-temp, _ai0config, _📦, _🗑️, __, etc.)
-_*
+# --- Environment & Secrets ---
+# NOTE: .env and .env.* are already covered by `.*` above.
+# Exceptions are declared once, in the hidden-files block.
+vars.env
+vars.env.*
+!vars.env.example
+
+# Generic secrets
+secrets.*
+*.secret
+*secret*
+*password*
+*credentials*
+*api*key*
+*apikey*
+*access*token*
+*oauth*token*
+*refresh*token*
+*pat*
+*personal*access*token*
+
+# --- Private Keys & Certificates ---
+# SSH keys
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+id_ecdsa
+id_dsa
+
+# Cryptographic private keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.signing.key
+*.private.key
+
+# Certificates (private parts)
+*.crt
+*.cer
+*.der
+
+# Public keys / certs are usually safe to keep (negation)
+!*.pub
+!*.public
+
+# --- Cloud Provider Credentials ---
+# NOTE: .aws/, .gcp/, .azure/, .terraform/, .docker/ are covered by `.*`
+
+# AWS
+aws-credentials.json
+
+# GCP
+*service-account*.json
+*service-account*.yaml
+*service-account*.yml
+*gcp*.json
+*gcloud*.json
+
+# Azure
+azure-credentials.json
+
+# Terraform (non-hidden state/tfvars)
+terraform.tfvars
+terraform.tfvars.json
+*.tfvars
+*.tfvars.json
+
+# --- Service Credentials & Configs ---
+# Generic credential files
+credentials.json
+secrets.json
+*credentials*.json
+*credentials*.yaml
+*credentials*.yml
+
+# Webhook secrets
+*webhook*secret*
+*webhook*signing*
+*hook*secret*

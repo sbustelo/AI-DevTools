@@ -1,0 +1,12 @@
+<!-- PATH: ai0/j0/examples/03-locator-and-templates/tpl/h0010-greeting-card.html -->
+<article class="j0-demo-card">
+    <header>
+        <h2>{{title}} {{{badgeHtml}}}</h2>
+    </header>
+    <j0-ifphp>
+        <p>Rendered on server for <strong>{{user}}</strong>.</p>
+    </j0-ifphp>
+    <j0-ifjs>
+        <p>This block is stripped during PHP SSR rendering.</p>
+    </j0-ifjs>
+</article>

@@ -6,13 +6,14 @@ final class PatcherParser
 {
     /**
      * Parses CREATE, PATCH (1-Line First), MOVE, DISABLE, and DISCARD blocks.
-     * Tracks Markdown code fences inside CREATE blocks so nested examples never close prematurely.
+     * Normalizes KaTeX-safe section markers (§) to dollar signs and tracks Markdown fences.
      *
      * @return array{operations: array<int, array<string, mixed>>, errors: array<int, string>}
      */
     public static function parse(string $rawInput): array
     {
-        $normalized = str_replace(["\r\n", "\r"], "\n", $rawInput);
+        $withDollars = str_replace("\u{00A7}", chr(36), $rawInput);
+        $normalized = str_replace(["\r\n", "\r"], "\n", $withDollars);
         $lines = explode("\n", $normalized);
         $operations = [];
         $errors = [];
@@ -124,9 +125,12 @@ final class PatcherParser
         $hunks = [];
         $state = 'IDLE';
         $buf = ['start' => [], 'end' => [], 'replace' => []];
+        $total = count($lines);
 
-        foreach ($lines as $line) {
+        for ($idx = 0; $idx < $total; $idx++) {
+            $line = $lines[$idx];
             $trimmed = trim($line);
+
             if ($trimmed === '<<< START') {
                 if ($state === 'REPLACE') {
                     $hunks[] = self::flushHunk($buf);
@@ -139,6 +143,12 @@ final class PatcherParser
                 continue;
             }
             if ($trimmed === '<<< END') {
+                if ($state === 'REPLACE') {
+                    $nextTrimmed = ($idx + 1 < $total) ? trim($lines[$idx + 1]) : '';
+                    if ($nextTrimmed === '' || $nextTrimmed === '<<< START') {
+                        continue;
+                    }
+                }
                 if ($state !== 'START') {
                     $errors[] = "Unexpected <<< END in '{$path}' outside START state.";
                 }

@@ -21,7 +21,7 @@ final class RestoreManager
             return ['batches' => [], 'total_files' => 0];
         }
 
-        $ignoreDirs = ['.git', 'node_modules', 'vendor', '_j0-temp', '_ai0', '_ai0config'];
+        $ignoreDirs = ['.git', 'node_modules', 'vendor', '_j0-temp', '_ai0', 'ai0', '_ai0config', 'ai0config', '_j0', 'j0', '_j0config', 'j0config'];
         $dirIter = new RecursiveDirectoryIterator($scanBase, FilesystemIterator::SKIP_DOTS);
         $filterIter = new RecursiveCallbackFilterIterator(
             $dirIter,

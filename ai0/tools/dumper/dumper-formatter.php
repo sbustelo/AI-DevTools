@@ -25,7 +25,7 @@ final class DumperFormatter
                 $validFiles[] = $clean;
             } elseif (is_dir($abs)) {
                 $iter = new RecursiveIteratorIterator(
-                    new RecursiveDirectoryIterator($abs, FilesystemIterator::SKIP_DOTS),
+                    new RecursiveDirectoryIterator($abs, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS),
                     RecursiveIteratorIterator::LEAVES_ONLY
                 );
                 $baseLen = strlen($rootClean) + 1;

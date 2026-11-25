@@ -1,5 +1,5 @@
 <?php
-// PATH: ai0-0010/tools/purge/index.php
+// PATH: ai0/tools/purge/index.php
 declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/core/ai0-context.php';
@@ -12,14 +12,14 @@ $state = ai0_get_state($ctx);
 $debug = (bool) ($state['debug'] ?? false);
 $scopeRel = $ctx['down_rel'] ?? '';
 $flash = null;
+$prefixCfg = j0_config_json('prefixes', $ctx['domains']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'purge_selected') {
     $items = isset($_POST['items']) && is_array($_POST['items']) ? $_POST['items'] : [];
-    $count = PurgeManager::deleteSelected($ctx['root'], $items);
+    $count = PurgeManager::deleteSelected($ctx['root'], $items, $prefixCfg);
     $flash = "Purge completed: {$count} item(s) permanently deleted.";
 }
 
-$prefixCfg = j0_config_json('prefixes', $ctx['domains']);
 $scan = PurgeManager::scan($ctx['root'], $prefixCfg, $scopeRel);
 $restoreUrl = ai0_ui_web_base($ctx) . '../tools/restore/index.php';
 

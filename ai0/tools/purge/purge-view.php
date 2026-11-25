@@ -13,7 +13,10 @@ function purge_render_view(array $vm): void
     $discard = $scan['discard'];
     $backup = $scan['backup'];
     $disabled = $scan['disabled'];
+    $osJunk = $scan['os_junk'] ?? [];
+    $osJunkCount = count($osJunk);
     $preselectedCount = count($discard) + count($backup);
+    $totalQueued = $preselectedCount + $osJunkCount;
     $restoreUrl = htmlspecialchars($vm['restoreUrl'], ENT_QUOTES, 'UTF-8');
     ?>
     <?php if ($flash !== null): ?>
@@ -83,7 +86,27 @@ function purge_render_view(array $vm): void
             </article>
         </section>
 
-        <?php if ($preselectedCount > 0 || $disabled !== []): ?>
+        <article class="j0ui-card">
+            <h2>Preselected: OS Junk (<code class="j0ui-mono">.DS_Store</code> / <code class="j0ui-mono">Thumbs.db</code> / <code class="j0ui-mono">._*</code>) (<?= $osJunkCount ?>)</h2>
+            <p class="j0ui-muted">Operating system metadata files safe to purge.</p>
+            <?php if ($osJunk === []): ?>
+                <p class="j0ui-muted">No OS junk files detected.</p>
+            <?php else: ?>
+                <ul class="j0ui-cat-list">
+                    <?php foreach ($osJunk as $entry): ?>
+                        <li class="j0ui-cat-item">
+                            <label class="j0ui-cat-main j0ui-mono">
+                                <input type="checkbox" name="items[]" value="<?= htmlspecialchars($entry['rel'], ENT_QUOTES, 'UTF-8') ?>" checked>
+                                <span><?= htmlspecialchars($entry['rel'], ENT_QUOTES, 'UTF-8') ?></span>
+                            </label>
+                            <span class="j0ui-badge"><?= htmlspecialchars($entry['marker'], ENT_QUOTES, 'UTF-8') ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </article>
+
+        <?php if ($totalQueued > 0 || $disabled !== []): ?>
             <div class="j0ui-actions">
                 <button type="submit" class="j0ui-btn j0ui-btn--danger">Delete selected items</button>
             </div>

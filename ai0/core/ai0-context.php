@@ -9,17 +9,11 @@ if (!defined('J0_EXEC')) {
 require_once dirname(__DIR__) . '/j0/core/j0-closest.php';
 require_once dirname(__DIR__) . '/j0/core/j0-config.php';
 require_once dirname(__DIR__) . '/j0/core/j0-prefix.php';
+require_once dirname(__DIR__) . '/j0/j0-locate.php';
 
 function ai0_guard_localhost(): void
 {
-    $addr = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $isLocal = in_array($addr, ['127.0.0.1', '::1'], true)
-        || str_contains($host, 'localhost')
-        || str_ends_with($host, '.test')
-        || str_ends_with($host, '.local');
-
-    if (!$isLocal) {
+    if (!j0_is_local()) {
         http_response_code(403);
         exit('ai0: local environment access only.');
     }
@@ -89,6 +83,7 @@ function ai0_resolve_context(string $fallbackDir): array
     $ctx['ai0_dir'] = $ai0Dir;
     $ctx['domains'] = j0_config_domains($rootClean, $ai0Dir);
     $ctx['temp_dir'] = $isContained ? ($ai0Dir . '/_j0-temp') : ($rootClean . '/_j0-temp');
+    j0_locate_init($rootClean);
 
     return $ctx;
 }

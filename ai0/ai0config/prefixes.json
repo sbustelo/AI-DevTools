@@ -30,5 +30,16 @@
             "purge_preselected": false,
             "label": "Disabled / Private (_)"
         }
+    },
+    "os_junk": {
+        ".DS_Store": "macOS",
+        "._*": "AppleDouble",
+        ".AppleDouble": "AppleDouble",
+        ".LSOverride": "macOS",
+        "Thumbs.db": "Windows",
+        "ehthumbs.db": "Windows",
+        "ehthumbs_vista.db": "Windows",
+        "Desktop.ini": "Windows",
+        ".directory": "Linux"
     }
 }

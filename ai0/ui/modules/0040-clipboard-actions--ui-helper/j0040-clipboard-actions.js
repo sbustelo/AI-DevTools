@@ -11,7 +11,7 @@
                 const text = typeof sourceEl.value === 'string' ? sourceEl.value : sourceEl.textContent;
                 const origLabel = copyBtn.textContent;
                 navigator.clipboard.writeText(text).then(function () {
-                    copyBtn.textContent = 'Copiado';
+                    copyBtn.textContent = 'Copied';
                     setTimeout(function () {
                         copyBtn.textContent = origLabel;
                     }, 1500);
@@ -42,19 +42,13 @@
             return;
         }
 
-        const themeBtn = event.target.closest('[data-j0-action="theme-toggle"]');
-        if (themeBtn) {
-            const html = document.documentElement;
-            const current = html.getAttribute('data-theme') || 'dark';
-            html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-        }
     });
 
     document.addEventListener('submit', function (event) {
         const form = event.target.closest('[data-j0-confirm]');
         if (form) {
             const msg = form.getAttribute('data-j0-confirm');
-            if (msg && !window.confirm(msg)) {
+            if (msg && !globalThis.confirm(msg)) {
                 event.preventDefault();
             }
         }

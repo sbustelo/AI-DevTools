@@ -25,43 +25,58 @@ if (!function_exists('j0_build_bundle')) {
      */
     function j0_build_bundle(array $options): array
     {
-        $outFile = $options['out_file'];
-        $ext = strtolower(ltrim($options['ext'], '.'));
+        $bs = chr(92);
+        $outFile = str_replace($bs, '/', (string) $options['out_file']);
+        $ext = strtolower(ltrim((string) $options['ext'], '.'));
         $doMinify = $options['minify'] ?? true;
         $doBackup = $options['backup'] ?? true;
-        $header = $options['header'] ?? '';
+        $header = (string) ($options['header'] ?? '');
         $markers = $options['markers'] ?? true;
+
+        $info = pathinfo($outFile);
+        $outDir = $info['dirname'] ?? '.';
+        $outBase = $info['filename'] ?? 'bundle';
+        $computedMinFile = "{$outDir}/{$outBase}.min.{$ext}";
+
+        $excludePaths = [$outFile, $computedMinFile];
+        if (!empty($options['exclude']) && is_array($options['exclude'])) {
+            foreach ($options['exclude'] as $ex) {
+                $excludePaths[] = str_replace($bs, '/', (string) $ex);
+            }
+        }
+        $excludeLookup = array_flip($excludePaths);
 
         $sources = $options['sources'] ?? (isset($options['src_dir']) ? [$options['src_dir']] : []);
         $files = [];
 
         foreach ((array) $sources as $src) {
-            $src = rtrim((string) $src, '/');
+            $src = rtrim(str_replace($bs, '/', (string) $src), '/');
             if (is_file($src) && str_ends_with(strtolower($src), '.' . $ext)) {
-                $files[] = $src;
+                if (!isset($excludeLookup[$src])) {
+                    $files[] = $src;
+                }
             } elseif (is_dir($src)) {
-                $files = array_merge($files, j0_scan_files($src, [$ext]));
+                $files = array_merge($files, j0_scan_files($src, [$ext], ['_', '.'], $excludePaths));
             }
         }
 
-        $files = array_unique($files);
+        $files = array_values(array_unique($files));
         if ($files === []) {
             return ['ok' => false, 'files_count' => 0, 'bundle_file' => $outFile, 'min_file' => null, 'reason' => 'no_sources'];
         }
 
         $separator = $ext === 'js' ? "\n;\n" : "\n";
-        $rawBundle = j0_concat_files($files, $separator, $header, $markers);
-        $saveRaw = j0_smart_save($outFile, $rawBundle, $doBackup);
+        $rawBundle = j0_concat_files($files, $separator, $header, (bool) $markers);
+        if (isset($options['transform']) && is_callable($options['transform'])) {
+            $rawBundle = (string) ($options['transform'])($rawBundle, $ext);
+        }
+        $saveRaw = j0_smart_save($outFile, $rawBundle, (bool) $doBackup);
 
         $minFile = null;
         if ($doMinify) {
-            $info = pathinfo($outFile);
-            $dir = $info['dirname'] ?? '.';
-            $base = $info['filename'] ?? 'bundle';
-            $minFile = "{$dir}/{$base}.min.{$ext}";
-
-            $minCode = $ext === 'css' ? j0_minify_css($rawBundle) : j0_minify_js($rawBundle);
-            j0_smart_save($minFile, $minCode, $doBackup);
+            $minFile = $computedMinFile;
+            $minCode = $ext === 'css' ? j0_minify_css($rawBundle, $options) : j0_minify_js($rawBundle, $options);
+            j0_smart_save($minFile, $minCode, (bool) $doBackup);
         }
 
         return [

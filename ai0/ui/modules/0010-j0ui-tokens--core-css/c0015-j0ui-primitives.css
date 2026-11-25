@@ -45,6 +45,14 @@ body {
     font-size: 18px;
 }
 
+.j0ui-topbar-end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
 .j0ui-nav {
     display: flex;
     flex-wrap: wrap;

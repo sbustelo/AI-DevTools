@@ -4,7 +4,18 @@ declare(strict_types=1);
 
 final class PurgeManager
 {
-    private const PROTECTED_DIRS = ['.git', 'node_modules', 'vendor', '_j0-temp', '_ai0', '_ai0config'];
+    private const PROTECTED_DIRS = ['.git', 'node_modules', 'vendor', '_j0-temp', '_ai0', 'ai0', '_ai0config', 'ai0config', '_j0', 'j0', '_j0config', 'j0config'];
+
+    private const DEFAULT_OS_JUNK = [
+        '.DS_Store'        => 'macOS',
+        '.AppleDouble'     => 'AppleDouble',
+        '.LSOverride'      => 'macOS',
+        'Thumbs.db'        => 'Windows',
+        'ehthumbs.db'      => 'Windows',
+        'ehthumbs_vista.db'=> 'Windows',
+        'Desktop.ini'      => 'Windows',
+        '.directory'       => 'Linux',
+    ];
 
     /**
      * Scans leading-underscore items and classifies them via j0_classify_prefix():
@@ -26,7 +37,7 @@ final class PurgeManager
         $baseLen = strlen($rootClean) + 1;
 
         if (!is_dir($scanBase)) {
-            return ['discard' => [], 'backup' => [], 'disabled' => []];
+            return ['discard' => [], 'backup' => [], 'disabled' => [], 'os_junk' => []];
         }
 
         $ignoreDirs = self::PROTECTED_DIRS;
@@ -43,25 +54,33 @@ final class PurgeManager
 
         $iterator = new RecursiveIteratorIterator($filterIter, RecursiveIteratorIterator::SELF_FIRST);
         $bs = chr(92);
-        $groups = ['discard' => [], 'backup' => [], 'disabled' => []];
+        $groups = ['discard' => [], 'backup' => [], 'disabled' => [], 'os_junk' => []];
 
         /** @var SplFileInfo $item */
         foreach ($iterator as $item) {
             $name = $item->getFilename();
-            if (!str_starts_with($name, '_')) {
+            $abs = str_replace($bs, '/', $item->getPathname());
+            $rel = substr($abs, $baseLen) . ($item->isDir() ? '/' : '');
+
+            if (str_starts_with($name, '_')) {
+                $info = j0_classify_prefix($name, $prefixCfg);
+                $state = $info['state'];
+                $bucket = isset($groups[$state]) ? $state : 'disabled';
+
+                $groups[$bucket][] = [
+                    'rel'    => $rel,
+                    'marker' => $info['marker'],
+                ];
                 continue;
             }
 
-            $abs = str_replace($bs, '/', $item->getPathname());
-            $rel = substr($abs, $baseLen) . ($item->isDir() ? '/' : '');
-            $info = j0_classify_prefix($name, $prefixCfg);
-            $state = $info['state'];
-            $bucket = isset($groups[$state]) ? $state : 'disabled';
-
-            $groups[$bucket][] = [
-                'rel'    => $rel,
-                'marker' => $info['marker'],
-            ];
+            $junkLabel = self::matchOsJunk($name, $prefixCfg);
+            if ($junkLabel !== null) {
+                $groups['os_junk'][] = [
+                    'rel'    => $rel,
+                    'marker' => $junkLabel,
+                ];
+            }
         }
 
         foreach ($groups as &$list) {
@@ -75,7 +94,7 @@ final class PurgeManager
     /**
      * @param array<int, string> $relPaths
      */
-    public static function deleteSelected(string $projectRoot, array $relPaths): int
+    public static function deleteSelected(string $projectRoot, array $relPaths, array $prefixCfg = []): int
     {
         $bs = chr(92);
         $rootClean = rtrim(str_replace($bs, '/', $projectRoot), '/');
@@ -87,7 +106,8 @@ final class PurgeManager
             if ($clean === '' || str_contains($clean, '..') || str_contains($clean, "\0")) {
                 continue;
             }
-            if (!str_starts_with(basename($clean), '_')) {
+            $base = basename($clean);
+            if (!str_starts_with($base, '_') && self::matchOsJunk($base, $prefixCfg) === null) {
                 continue;
             }
 
@@ -124,6 +144,39 @@ final class PurgeManager
         }
 
         return $deleted;
+    }
+
+    /**
+     * @param array<string, mixed> $prefixCfg
+     */
+    private static function matchOsJunk(string $name, array $prefixCfg): ?string
+    {
+        $rules = isset($prefixCfg['os_junk']) && is_array($prefixCfg['os_junk'])
+            ? $prefixCfg['os_junk']
+            : array_merge(self::DEFAULT_OS_JUNK, ['._*' => 'AppleDouble']);
+
+        $lowerName = strtolower($name);
+        foreach ($rules as $pattern => $label) {
+            if (!is_string($label) || $label === '') {
+                continue;
+            }
+            $pat = (string) $pattern;
+            if ($pat === '') {
+                continue;
+            }
+            if (str_ends_with($pat, '*')) {
+                $prefix = substr($pat, 0, -1);
+                if ($prefix !== '' && str_starts_with($lowerName, strtolower($prefix))) {
+                    return $label;
+                }
+                continue;
+            }
+            if ($lowerName === strtolower($pat)) {
+                return $label;
+            }
+        }
+
+        return null;
     }
 
     private static function removeDirRecursive(string $dir): void

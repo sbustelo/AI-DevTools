@@ -11,6 +11,7 @@ if (!defined('J0_DIR')) {
 }
 
 require_once J0_DIR . '/core/j0-use.php';
+require_once J0_DIR . '/j0-locate.php';
 j0_use('core');
 
 if (!function_exists('j0_api')) {
@@ -47,6 +48,44 @@ if (!function_exists('j0_api')) {
             public function assetDir(string $key): ?string
             {
                 return j0_asset_dir($key);
+            }
+
+            public function projectRoot(): string
+            {
+                return j0_project_root();
+            }
+
+            /**
+             * @param string|array<int, string> $dirs
+             */
+            public function mount(string|array $dirs, ?string $projectRoot = null): void
+            {
+                j0_mount($dirs, $projectRoot);
+            }
+
+            /**
+             * @param array{deep?: bool, cache?: bool} $options
+             */
+            public function src(string $id, array $options = []): string
+            {
+                return j0_src($id, $options);
+            }
+
+            /**
+             * @param array<string, mixed> $vars
+             * @param array{deep?: bool, cache?: bool} $options
+             */
+            public function text(string $id, array $vars = [], array $options = []): mixed
+            {
+                return j0_text($id, $vars, $options);
+            }
+
+            /**
+             * @param array{deep?: bool, cache?: bool} $options
+             */
+            public function path(string $id, string $legacyFilename = '', array $options = []): string
+            {
+                return j0_path($id, $legacyFilename, $options);
             }
         };
 

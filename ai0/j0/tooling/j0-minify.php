@@ -110,6 +110,13 @@ if (!function_exists('j0_minify_dispatch')) {
             }
         }
 
+        $allowRemote = (bool) ($options['allow_remote'] ?? true);
+        if (!$allowRemote) {
+            $stamp = gmdate('Y-m-d\TH:i:s\Z');
+            $warning = "/*! [j0-minify] REMOTE DISABLED ({$type}): local plugin absent and remote minification disabled for protected code at {$stamp}. Serving uncompacted source. */\n";
+            return $warning . $code;
+        }
+
         $banner = j0_minify_extract_banner($code);
         $minified = j0_minify_remote($code, $type, $options);
         if ($minified !== null) {

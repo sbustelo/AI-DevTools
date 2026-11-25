@@ -10,6 +10,13 @@
     border-bottom: 1px solid var(--j0ui-border-subtle);
 }
 
+.j0ui-tree-toolbar-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
 .j0ui-tree-root,
 .j0ui-tree-branch {
     list-style: none;
@@ -56,6 +63,9 @@
 }
 
 .j0ui-tree-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-family: var(--j0ui-font-mono);
     font-size: 12px;
     cursor: pointer;

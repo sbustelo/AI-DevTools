@@ -1,12 +1,15 @@
 [English version available](README.md)
 
-# AI-DevTools 🛠️🤖
+# AI-DevTools y Librería j0 🛠️🤖
 
 <p align="center">
   <img src="./docs/assets/sb-calidad-o-tabla.png" alt="Calidad o Tabla" width="512">
 </p>
 
-Suite sin dependencias externas de herramientas quirúrgicas y protocolos operativos para desarrollo asistido por IA—diseñada para anular la pereza de los LLM, evitar el desvío de contexto y garantizar cero deuda técnica.
+Protocolos para mantener a las IA cortitas y la deuda técnica bajo control. Herramientas para desarrollar con IA sin quedar atado a servicios, plataformas ni infraestructura costosa.
+
+-   **Modelos accesibles:** desarrollo agéntico utilizando modelos de chat, incluso gratuitos o económicos, en lugar de depender de servicios especializados de programación.
+-   **Sin Vercel Tax:** proyectos que pueden desarrollarse, compilarse y desplegarse en infraestructura convencional, desde hosting estático hasta PHP compartido.
 
 ---
 
@@ -25,7 +28,7 @@ Herramientas en PHP 8.2+ y Vanilla JS (corre en macOS Valet, Apache, Nginx o ser
   - `j0/src/`: Módulos verticales políglotas (`vfs/` para KV + cookie SSR + IndexedDB blobs/documentos, y extensión de capacidad `vfs--remote/` para sincronización cloud con `j0auth`).
 
 #### Inicio Rápido (`ai0`)
-Enlazá `ai0/` en la raíz de cualquier proyecto como `_ai0` (excluido nativamente por los scanners y builders de `ai0` y `j0`; agregá `_*` al `.gitignore` y a las exclusiones FTP de tu proyecto):
+Copiá o creá un symlink de `ai0/` en la raíz de cualquier proyecto como `_ai0` (excluido nativamente por los scanners y builders de `ai0` y `j0`; agregá `_*` al `.gitignore` y a las exclusiones FTP de tu proyecto):
 
 ```bash
 cd /ruta/a/tu-proyecto
@@ -40,7 +43,7 @@ Abrí `http://tu-proyecto.test/_ai0/` o copiá cualquier stub portable desde `ai
 ### 2. `AI-PerkeleProtocols/` — Protocolos de Control Conductual y Epistémico ☠️🇫🇮
 Prompts de sistema y skills creados por **Santiago Bustelo** (inspirados en el *Management by Perkele* de Linus Torvalds) para anular los atajos de ahorro de tokens del RLHF:
 
-- **`perkele-architect.en.md`:** Skill principal de arquitectura y entrega de código (*Quality, or That's a Paddlin'*).
+- **`ai0-perkele-architect.en.md`:** Skill principal de arquitectura y entrega de código (*Quality, or That's a Paddlin'*).
 - **`perkele-session-handoff.en.json`:** Generador determinista de continuidad para ventanas de contexto saturadas.
 - **`PERKELE-PHANTOM-WRITER-V2.02.es.md`:** Protocolo de redacción y absorción de estilo (español).
 - **`anti-bullshit protocol.en.txt` / `.es.txt`:** Reglas de control epistémico contra alucinaciones.
@@ -48,15 +51,16 @@ Prompts de sistema y skills creados por **Santiago Bustelo** (inspirados en el *
 ---
 
 ### 3. `docs/` — Especificaciones Técnicas (en inglés)
-- [`docs/architecture.md`](docs/architecture.md) — Arquitectura del sistema, cascada de 4 niveles `[_]ai0config` y separación `.php` vs. `.json`.
+- [`docs/j0 & ai0 architecture.md`](docs/j0%20%26%20ai0%20architecture.md) — Arquitectura del sistema, cascada de 4 niveles `[_]ai0config` y separación `.php` vs. `.json`.
 - [`docs/j0-naming-conventions.md`](docs/j0-naming-conventions.md) — Taxonomía de prefijos (`_`, `__`, `_🗑️` *Discard*, `_📦`) y convenciones pseudo-BEM.
 - [`docs/j0-primitives.md`](docs/j0-primitives.md) — Referencia de API para módulos PHP y JS de `j0`.
-- [`docs/CHANGELOG.md`](docs/CHANGELOG.md) — Historial completo de versiones reconstruido desde Git.
+- [`docs/j0-tutorial.md`](docs/j0-tutorial.md) — Guía paso a paso de adopción progresiva.
+- [`docs/ai0 CHANGELOG.md`](docs/ai0%20CHANGELOG.md) — Historial completo de versiones.
 
 ---
 
 ## ✳️ Créditos y Artículos
-Creado y conceptualizado por **Santiago Bustelo** (https://www.bustelo.com.ar/).
+Creado por **Santiago Bustelo** (https://www.bustelo.com.ar/).
 - Perkele Coding: https://santiagobustelo.medium.com/perkele-coding-ed60e900e149
 - The AI Perkele Suit: https://medium.com/santiago-bustelo-in-english/the-ai-perkele-suit-a-framework-for-measuring-real-world-ai-pain-03e3d64f1ff8
 - Gemini's Technical Confession: https://santiagobustelo.medium.com/gemini-just-confirmed-the-effectiveness-of-perkele-prompting-a-technical-confession-c28458df9a2c

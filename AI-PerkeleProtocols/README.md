@@ -22,7 +22,7 @@ When the AI deviates, the Architect triggers a hard stop (`PADDLIN` / `TABLA` / 
 
 ## 📂 Included Protocols
 
-- **`perkele-architect.en.md`:** Primary software architecture and `_ai0` code delivery skill (*Quality, or That's a Paddlin'*). Enforces zero technical debt, two-step architectural gates, IIFE + EventBus JS modularity, and deterministic `CREATE` / `PATCH` / `MOVE` / `DISABLE` / `DISCARD` blocks.
+- **`ai0-perkele-architect.en.md`:** Primary software architecture and `_ai0` code delivery skill (*Quality, or That's a Paddlin'*). Enforces zero technical debt, two-step architectural gates, IIFE + EventBus JS modularity, CSS token SSOT, and deterministic `CREATE` / `PATCH` / `MOVE` / `DISABLE` / `DISCARD` blocks.
 - **`perkele-session-handoff.en.json`:** Emergency context-saturation recovery prompt that generates a deterministic handoff manifest and terminal payload script for a fresh AI session.
 - **`PERKELE-PHANTOM-WRITER-V2.02.es.md`:** Ghostwriting and style-absorption protocol (Spanish) engineered to preserve authorial voice and eliminate LLM clichés.
 - **`anti-bullshit protocol.en.txt` / `.es.txt`:** Standalone epistemic control rules enforcing `UNKNOWN DATA` / `DATO DESCONOCIDO` thresholds over probabilistic guessing.

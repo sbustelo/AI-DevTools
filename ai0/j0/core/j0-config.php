@@ -1,28 +1,57 @@
 <?php
-// PATH: ai0-0010/j0/php/j0-config.php
+// PATH: j0/core/j0-config.php
 declare(strict_types=1);
 
 if (!defined('J0_EXEC')) {
     define('J0_EXEC', true);
 }
 
+if (!function_exists('j0_is_local')) {
+    /**
+     * Determines whether execution is running in a local development environment.
+     */
+    function j0_is_local(bool $allowCli = false): bool
+    {
+        if ($allowCli && PHP_SAPI === 'cli') {
+            return true;
+        }
+
+        $addr = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+
+        if (in_array($addr, ['127.0.0.1', '::1'], true)) {
+            return true;
+        }
+
+        return $host === 'localhost'
+            || str_starts_with($host, 'localhost:')
+            || str_ends_with($host, '.test')
+            || str_contains($host, '.test:')
+            || str_ends_with($host, '.local')
+            || str_contains($host, '.local:');
+    }
+}
+
 if (!function_exists('j0_config_domains')) {
     /**
-     * Builds the 4-tier [_]ai0config resolution list ordered from highest priority (1) to lowest (4).
+     * Builds the 4-tier [_]<namespace>config resolution list ordered from highest priority (1) to lowest (4).
+     * Supports both 'ai0' ([_]ai0config) and 'j0' ([_]j0config) cascades.
      *
      * @return array<int, string>
      */
-    function j0_config_domains(string $projectRoot, string $ai0Dir): array
+    function j0_config_domains(string $projectRoot, string $engineDir, string $namespace = 'ai0'): array
     {
         $bs = chr(92);
         $rootClean = rtrim(str_replace($bs, '/', $projectRoot), '/');
-        $ai0Clean = rtrim(str_replace($bs, '/', $ai0Dir), '/');
+        $engineClean = rtrim(str_replace($bs, '/', $engineDir), '/');
+        $ns = preg_replace('/[^a-zA-Z0-9_-]/', '', ltrim($namespace, '_')) ?: 'ai0';
+        $folder = $ns . 'config';
 
         $candidates = [
-            $rootClean . '/_ai0config',
-            $rootClean . '/ai0config',
-            $ai0Clean . '/_ai0config',
-            $ai0Clean . '/ai0config',
+            $rootClean . '/_' . $folder,
+            $rootClean . '/' . $folder,
+            $engineClean . '/_' . $folder,
+            $engineClean . '/' . $folder,
         ];
 
         return array_values(array_unique($candidates));

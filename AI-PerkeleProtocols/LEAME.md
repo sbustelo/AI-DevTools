@@ -22,7 +22,7 @@ Cuando la IA se desvía, el Arquitecto dispara un freno en seco (`PADDLIN`, `TAB
 
 ## 📂 Protocolos Incluidos
 
-- **`perkele-architect.en.md`:** Skill principal de arquitectura de software y entrega de código `_ai0` (*Quality, or That's a Paddlin'*). Impone cero deuda técnica, diseño en dos pasos antes de codificar, JS modular con IIFE + EventBus y bloques deterministas `CREATE` / `PATCH` / `MOVE` / `DISABLE` / `DISCARD`.
+- **`ai0-perkele-architect.en.md`:** Skill principal de arquitectura de software y entrega de código `_ai0` (*Quality, or That's a Paddlin'*). Impone cero deuda técnica, diseño en dos pasos antes de codificar, JS modular con IIFE + EventBus, SSOT de tokens CSS y bloques deterministas `CREATE` / `PATCH` / `MOVE` / `DISABLE` / `DISCARD`.
 - **`perkele-session-handoff.en.json`:** Protocolo de recuperación ante saturación de contexto que genera un manifiesto de continuidad y los comandos de terminal para migrar a una sesión limpia.
 - **`PERKELE-PHANTOM-WRITER-V2.02.es.md`:** Protocolo de redacción y absorción de estilo (español) diseñado para preservar la voz del autor y eliminar clichés de IA.
 - **`anti-bullshit protocol.en.txt` / `.es.txt`:** Reglas autónomas de control epistémico que obligan a declarar `DATO DESCONOCIDO` / `UNKNOWN DATA` antes que adivinar.

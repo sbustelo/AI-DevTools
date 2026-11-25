@@ -38,14 +38,17 @@ function dumper_render_view(array $vm): void
         <div class="j0ui-grid-sidebar" data-j0-tree-host>
             <section class="j0ui-card">
                 <div class="j0ui-tree-toolbar">
-                    <div>
-                        <strong>Project Tree</strong>
+                    <div class="j0ui-tree-toolbar-title">
+                        <label class="j0ui-tree-label">
+                            <input type="checkbox" data-j0-tree-check-all>
+                            <strong>Project Tree</strong>
+                        </label>
                         <span class="j0ui-badge"><?= htmlspecialchars($scopeLabel, ENT_QUOTES, 'UTF-8') ?></span>
-                        <span class="j0ui-muted"><?= (int) $scan['included_files'] ?> / <?= (int) $scan['total_files'] ?> files</span>
+                        <span class="j0ui-muted" data-j0-tree-stats><?= (int) $scan['included_files'] ?> / <?= (int) $scan['total_files'] ?> files</span>
                     </div>
                     <div class="j0ui-actions">
                         <button type="button" class="j0ui-btn" data-j0-action="toggle-excluded-only" data-j0-active="false">Show excluded only</button>
-                        <button type="button" class="j0ui-btn" data-j0-action="tree-expand-all">Expand all</button>
+                        <button type="button" class="j0ui-btn" data-j0-action="tree-toggle-all" data-j0-collapsed-state="false">Collapse all</button>
                         <?php if ($vm['fullProjectUrl'] !== null): ?>
                             <a class="j0ui-btn" href="<?= htmlspecialchars($vm['fullProjectUrl'], ENT_QUOTES, 'UTF-8') ?>">Expand to root</a>
                         <?php endif; ?>
@@ -108,6 +111,7 @@ function dumper_render_tree_nodes(array $nodes): void
         ?>
         <li class="j0ui-tree-node"
             data-j0-tree-node
+            data-j0-node-type="<?= $isDir ? 'dir' : 'file' ?>"
             data-j0-cat="<?= $cat ?>"
             data-j0-excluded="<?= $excluded ? 'true' : 'false' ?>"
             data-j0-collapsed="false">

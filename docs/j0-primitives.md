@@ -1,198 +1,573 @@
-# `j0 v2` Core, Tooling & VFS API Reference
+# `j0 v2` Complete Function, Module & Pattern Reference
 
-All files under `ai0/j0/` are zero-dependency PHP 8.2+ and Vanilla ES2020+ modules organized into three functional layers: `core/`, `tooling/`, and `src/`.
+Every file under `ai0/j0/` is a zero-dependency PHP 8.2+ or Vanilla ES2020+ module organized into `quickstart/`, `api.php`, `core/`, `tooling/`, `j0-locate.php`, and `src/`. Every PHP file can be included standalone via `require_once` or loaded lazily by domain via `j0_use()`.
 
 ---
 
-## Layer 0: `j0/core/` (BIOS & Micro-Kernel)
+## 1. Layer 0 Bootstrap (`j0/quickstart/`)
 
-### 1. `01-j0kernel.js` — Unified JS EventBus, Service Registry & Passive Logger
-Single-file micro-kernel that initializes `window.j0.bus`, `window.j0.registry`, and `window.j0.logger` without boot timers or external dependencies.
+### `j0_boot()` — Self-Healing Upward Locator (`j0-bootstrap.php` / `j0-bootstrap-compact.php`)
+Walks lexically upward from the caller directory (preserving symlinks), locates `j0/api.php`, caches `'__j0_api__'` in `.j0route.php`, and loads the public facade.
 
+```php
+<?php
+require_once __DIR__ . '/j0/quickstart/j0-bootstrap.php';
+
+// Full options signature (j0-bootstrap.php)
+$ok = j0_boot(__DIR__, [
+    'targets'     => ['_j0/api.php', 'j0/api.php', '_ai0/j0/api.php'],
+    'cache_route' => true,
+    'max_levels'  => 12,
+    'on_missing'  => 'strict', // 'strict' (HTTP 500 + exit) or 'silent' (returns bool)
+]);
+
+// Compact signature (j0-bootstrap-compact.php)
+// require_once __DIR__ . '/j0/quickstart/j0-bootstrap-compact.php';
+// $ok = j0_boot(__DIR__, ['_j0/api.php', 'j0/api.php']);
+```
+
+---
+
+## 2. Public Boundary Facade (`j0/api.php`)
+
+### `j0_api()` — Single Consumer Entrypoint
+Returns a singleton facade exposing core loader and locator capabilities without hardcoding internal `j0` subdirectories.
+
+```php
+<?php
+require_once __DIR__ . '/j0/api.php';
+
+$j0 = j0_api();
+$rootDir     = $j0->root();
+$loadedFiles = $j0->use('tooling', 'vfs');
+$kernelPath  = $j0->assetPath('kernel.js');
+$vfsDir      = $j0->assetDir('vfs');
+$projectRoot = $j0->projectRoot();
+
+$j0->mount(['tpl', 'assets'], $projectRoot);
+$logoUrl     = $j0->src('logo.svg');
+$cardHtml    = $j0->text('card', ['title' => 'Hello']);
+$helperFile  = $j0->path('helper.php');
+```
+
+---
+
+## 3. Domain & Asset Discovery (`j0/core/j0-use.php`)
+
+### `j0_root()`
+Returns the normalized absolute root path of the `j0` directory.
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-use.php';
+$j0Dir = j0_root(); // e.g. '/var/www/project/ai0/j0'
+```
+
+### `j0_discover_domains()`
+Scans top-level `j0` directories (`core`, `tooling`, etc.) and `j0/src/<module>[--capability]` folders once per request in `SORT_NATURAL` order.
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-use.php';
+$domains = j0_discover_domains();
+// ['core' => ['.../core'], 'tooling' => ['.../tooling'], 'vfs' => ['.../0100-vfs', '.../0100-vfs--remote'], 'all' => [...]]
+```
+
+### `j0_use(string ...$domains)`
+Lazily includes all `.php` files belonging to one or more filesystem-derived domains (`'core'`, `'tooling'`, `'vfs'`, `'all'`).
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-use.php';
+$included = j0_use('core', 'tooling', 'vfs');
+```
+
+### `j0_asset_path(string $key)`
+Resolves exact filenames (`'01-j0kernel.js'`) or prefix-stripped logical keys (`'kernel.js'`, `'vfs-core.js'`, `'emitter.js'`) to their physical file path inside `j0`.
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-use.php';
+$kernelFile  = j0_asset_path('kernel.js');
+$emitterFile = j0_asset_path('emitter.js');
+```
+
+### `j0_asset_dir(string $key)`
+Resolves logical `j0` module directories (`'tooling'`, `'vfs'`, `'0500-ui-patterns'`) to their physical directory path.
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-use.php';
+$vfsDir      = j0_asset_dir('vfs');
+$patternsDir = j0_asset_dir('0500-ui-patterns');
+```
+
+---
+
+## 4. Core PHP Primitives (`j0/core/`)
+
+### `j0_closest()` (`j0-closest.php`)
+Walks lexically upward from `$startDir` without resolving symlinks until any relative target exists, returning bidirectional relative geometry (`up_rel`, `down_rel`).
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-closest.php';
+
+$hit = j0_closest(__DIR__, ['_ai0/index.php', 'ai0/index.php'], 12);
+// ['root' => '...', 'match' => '_ai0/index.php', 'base_dir' => '_ai0', 'target_abs' => '...', 'origin_abs' => '...', 'up_rel' => '../../', 'down_rel' => 'src/billing']
+```
+
+### `j0_is_local()`, `j0_config_domains()`, `j0_config_json()`, `j0_config_php()` (`j0-config.php`)
+Environment guard and 4-tier `[_]<namespace>config` cascade (`project/_config` > `project/config` > `engine/_config` > `engine/config`).
+```php
+<?php
+define('J0_EXEC', true);
+require_once __DIR__ . '/j0/core/j0-config.php';
+
+if (!j0_is_local(true)) {
+    exit('Local environment only.');
+}
+
+$domains  = j0_config_domains('/var/www/app', '/var/www/app/_ai0', 'ai0');
+$rules    = j0_config_json('dumper-categories', $domains); // Bottom-up recursive merge
+$secrets  = j0_config_php('secrets/deploy', $domains);     // Top-down first-match (requires J0_EXEC)
+```
+
+### `j0_normalize_prefix_text()`, `j0_default_prefix_config()`, `j0_classify_prefix()` (`j0-prefix.php`)
+Classifies leading-underscore semantics (`_🗑️` system discard, `_📦` system backup, `__` human discard, `_*` human disabled/private) with macOS APFS `U+FE0F` normalization.
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-prefix.php';
+
+$clean   = j0_normalize_prefix_text("_\u{1F5D1}\u{FE0F}old.php"); // "_\u{1F5D1}old.php"
+$defaults = j0_default_prefix_config();
+$meta    = j0_classify_prefix('_📦app.js_2026-11-24T10-00-00.js', $defaults);
+// ['state' => 'backup', 'actor' => 'system', 'excluded_by_default' => true, 'purge_preselected' => true, 'marker' => '_📦']
+```
+
+### `j0_scan_files()`, `j0_dir_max_mtime()`, `j0_dir_signature()` (`j0-scan.php`)
+Recursive symlink-safe directory scanner (`'tree'` hierarchy sort or `'flat'` natural sort), latest `mtime` calculator, and deletion-safe SHA-1 tree fingerprint (`path|mtime|size`).
+```php
+<?php
+require_once __DIR__ . '/j0/core/j0-scan.php';
+
+$files = j0_scan_files(__DIR__ . '/src', ['js', 'css'], ['_', '.'], [], 'tree');
+$mtime = j0_dir_max_mtime(__DIR__ . '/src', ['js', 'css']);
+$sig   = j0_dir_signature(__DIR__ . '/src', ['js', 'css']);
+```
+
+---
+
+## 5. Unified Micro-Kernel (`j0/core/01-j0kernel.js`)
+
+Anchored on `globalThis.j0` so identical code runs in browser windows, Web Workers, and sandboxed plugin threads.
+
+### `EventChannel`, `j0.bus` (`on`, `once`, `off`, `emit`, `schema`), `j0.register`, `j0.get`, `j0.has`, `j0.logger` (`log`, `warn`, `error`, `history`, `clear`)
 ```javascript
-// 1. Register & retrieve synchronous services (Service Locator)
-window.j0.register('my-service', { compute: (x) => x * 2 });
-const svc = window.j0.get('my-service');
+(function () {
+    'use strict';
 
-// 2. Define optional QA payload contracts (enforced only when window.j0.QA = true)
-window.j0.bus.schema['item:selected'] = { id: 'string' };
+    const j0 = globalThis.j0;
 
-// 3. Subscribe & emit decoupled notifications
-const off = window.j0.bus.on('item:selected', ({ id }) => {
-    window.j0.logger.log('Selected item', id);
-});
-window.j0.bus.emit('item:selected', { id: 'node-42' });
-off();
-```
+    // 1. Service Registry
+    j0.register('palette:math', { invert: (v) => 1 - v });
+    if (j0.has('palette:math')) {
+        const math = j0.get('palette:math');
+        j0.logger.log('Inverted value', math.invert(0.25));
+    }
 
-### 2. `j0-closest.php` — Upward Directory Traverser
-Walks lexically upward from `$startDir` until any relative target exists, returning a bidirectional path map without resolving symlinks.
+    // 2. Bus Schema Validation (enforced when j0.QA = true)
+    j0.QA = true;
+    j0.bus.schema['doc:saved'] = { id: 'string', bytes: 'number' };
 
-```php
-require_once 'path/to/j0/core/j0-closest.php';
+    // 3. Subscriptions: on(), once(), off(), emit()
+    const onSaved = (payload) => j0.logger.log('Saved doc', payload);
+    const unsubscribe = j0.bus.on('doc:saved', onSaved);
+    j0.bus.once('app:booted', () => j0.logger.log('First boot complete'));
 
-$map = j0_closest(__DIR__, ['_ai0/index.php', 'ai0/index.php']);
-// ['root' => '...', 'match' => '...', 'base_dir' => '_ai0', 'target_abs' => '...', 'origin_abs' => '...', 'up_rel' => '../../', 'down_rel' => 'src/billing']
-```
+    j0.bus.emit('app:booted', {});
+    j0.bus.emit('doc:saved', { id: 'doc-1', bytes: 512 });
 
-### 3. `j0-config.php` — 4-Level Configuration & Secret Loader
-Resolves declarative JSON configs via recursive merge (`4 -> 3 -> 2 -> 1`) and guarded PHP secrets via first-match (`1 -> 2 -> 3 -> 4`).
+    unsubscribe();
+    j0.bus.off('doc:saved', onSaved);
 
-```php
-require_once 'path/to/j0/core/j0-config.php';
+    // 4. Isolated Custom EventChannel
+    const localChannel = new j0.EventChannel('inspector');
+    localChannel.on('tick', (p) => j0.logger.warn('Inspector tick', p));
+    localChannel.emit('tick', { frame: 1 });
 
-$domains  = j0_config_domains($projectRoot, $ai0Dir);
-$prefixes = j0_config_json('prefixes', $domains);
-$ftpCreds = j0_config_php('secrets/ftp-sync', $domains); // Requires J0_EXEC defined
-```
-
-### 4. `j0-prefix.php` — Semantic Prefix Classifier
-Classifies basenames against `prefixes.json` (`discard` for `_🗑️`/`__`, `backup` for `_📦`, `disabled` for `_*`, `active` otherwise), normalizing macOS APFS `U+FE0F` variation selectors.
-
-```php
-require_once 'path/to/j0/core/j0-prefix.php';
-
-$prefixCfg = j0_config_json('prefixes', $domains);
-$info = j0_classify_prefix('_🗑️legacy.php', $prefixCfg);
-// ['state' => 'discard', 'actor' => 'system', 'excluded_by_default' => true, 'purge_preselected' => true, 'marker' => '_🗑️']
-```
-
-### 5. `j0-scan.php` — Natural Recursive Scanner & Mtime
-Recursively lists files filtered by extension and ignored prefixes (`_` and `.` by default), sorted with `SORT_NATURAL`.
-
-```php
-require_once 'path/to/j0/core/j0-scan.php';
-
-$jsFiles  = j0_scan_files(__DIR__ . '/src', ['js']);
-$maxMtime = j0_dir_max_mtime(__DIR__ . '/src', ['js', 'css']);
+    // 5. Passive Circular Logger Inspection
+    j0.logger.error('Sample diagnostic error', { code: 500 });
+    const recentLogs = j0.logger.history();
+    j0.logger.clear();
+})();
 ```
 
 ---
 
-## Layer 1: `j0/tooling/` (Build, Atomic IO & Asset Utilities)
+## 6. Resilient Locator & Primitives `S()` / `T()` (`j0/j0-locate.php`)
 
-### 6. `j0-backup.php` — Timestamped `_📦` Backup Rotator
-Copies or moves an existing file to `<dir>/_📦<filename>_<YYYY-MM-DDTHH-MM-SS>.<ext>`.
-
+### `j0_locate_init()`, `j0_project_root()`, `j0_mount()`, `j0_route_cache_read()`, `j0_route_cache_write()`
+Configures the host root, mounts loose directories (Library Mode), and reads/writes the guarded `.j0route.php` OPcache map.
 ```php
-require_once 'path/to/j0/tooling/j0-backup.php';
+<?php
+define('J0_EXEC', true);
+require_once __DIR__ . '/j0/j0-locate.php';
 
-$backupPath = j0_backup_rotate('/path/to/app.js');
+j0_locate_init(__DIR__);
+$root = j0_project_root();
+j0_mount(['tpl', 'assets'], $root);
+
+$routes = j0_route_cache_read();
+$routes['custom:key'] = __DIR__ . '/tpl/h0010-card.html';
+j0_route_cache_write($routes);
 ```
 
-### 7. `j0-concat.php` — Source File Concatenator
-Normalizes `\r\n` to `\n` and joins source files in memory with optional boundary comments.
-
+### `j0_locate_parse_module()`, `j0_locate_index()`, `j0_locate_ring_search()`, `j0_locate()`, `j0_path()`, `j0_path_to_web_url()`
+Low-level module metadata parsing, Union Mount indexing (`j0/src` -> `project/src` -> mounted dirs), opt-in pruned ring search, and disk/URL path resolution.
 ```php
-require_once 'path/to/j0/tooling/j0-concat.php';
+<?php
+define('J0_EXEC', true);
+require_once __DIR__ . '/j0/j0-locate.php';
 
-$code = j0_concat_files($jsFiles, "\n;\n", "/*! App Bundle */", true);
+$meta    = j0_locate_parse_module('0300-billing--isprotected');
+// ['sem_id' => 'billing', 'tier' => 'isprotected', 'tags' => ['isprotected']]
+
+$index   = j0_locate_index();
+$record  = j0_locate('card', 'tpl', ['deep' => true, 'cache' => true]);
+$absPhp  = j0_path('billing', 'invoice.php');
+$deepHit = j0_locate_ring_search('orphan-widget.html', 4);
+$webUrl  = $record !== null ? j0_path_to_web_url($record['path']) : null;
 ```
 
-### 8. `j0-minify.php` — Zero-Dependency CSS & JS Minifier
-Compacts CSS and JS locally while preserving `/*! ... */` license banners and falling back safely to original code if output would be empty.
+### `j0_src()` / `S()` and `j0_text()` / `j0_tpl()` / `T()`
+- **`S($id, $options)` / `j0_src()`:** Returns public HTTP URL for web assets, `api/serve.php?s=...` for non-public tiers, or absolute disk path for `.php` files.
+- **`T($id, $vars, $options)` / `j0_text()` / `j0_tpl()`:** Renders HTML templates (stripping `<j0-ifjs>` and unwrapping `<j0-ifphp>`), inline `<svg>`, or decoded `.json`.
 
 ```php
-require_once 'path/to/j0/tooling/j0-minify.php';
+<?php
+define('J0_EXEC', true);
+require_once __DIR__ . '/j0/j0-locate.php';
 
-$minCss = j0_minify_css($rawCss);
-$minJs  = j0_minify_js($rawJs);
+j0_mount(['tpl', 'img']);
+
+// Spatial resolution ("Where")
+$logoUrl  = S('logo.svg');
+$logicPhp = j0_src('billing/calc.php');
+
+// Tangible content rendering ("What")
+$html = T('greeting-card', [
+    'user'      => 'Ada Lovelace',
+    'badgeHtml' => '<span class="badge">PRO</span>', // {{{badgeHtml}}} raw
+]);
+$cfgArray = j0_tpl('settings.json');
 ```
 
-### 9. `j0-save.php` — MD5-Checked Atomic Writer
-Skips disk writes when MD5 matches the target file (`reason: 'unchanged'`), otherwise rotates a `_📦` backup (optional) and writes atomically via temp file + `rename()`.
-
+### `j0_resolve_text_macros()` & `j0_interpolate_text()`
+Standalone template processors called automatically by `j0_text()` and directly available for custom string pipelines.
 ```php
-require_once 'path/to/j0/tooling/j0-save.php';
+<?php
+define('J0_EXEC', true);
+require_once __DIR__ . '/j0/j0-locate.php';
 
-$res = j0_smart_save('/path/to/dist/app.js', $code, true);
-```
-
-### 10. `j0-build.php` — Bundle Orchestrator
-Scans, concatenates, saves `<name>.<ext>`, minifies, and saves `<name>.min.<ext>`.
-
-```php
-require_once 'path/to/j0/tooling/j0-build.php';
-
-$status = j0_build_bundle([
-    'src_dir'  => __DIR__ . '/modules',
-    'out_file' => __DIR__ . '/modules.js',
-    'ext'      => 'js',
+$raw = '<img src="{S(\'logo.svg\')}"><h1>Hello {{name}}</h1><div>{{{rawHtml}}}</div>';
+$withMacros = j0_resolve_text_macros($raw);
+$finalHtml  = j0_interpolate_text($withMacros, [
+    'name'    => '<World>', // Escaped to &lt;World&gt;
+    'rawHtml' => '<em>Trusted markup</em>',
 ]);
 ```
 
-### 11. `j0-asset-tags.php` — Smart HTML Tag Emitter
-Compares source `mtime` against `.min.<ext>`, rebuilds when stale and writable, and emits either a single `.min` tag or individual source tags in `DEBUG` mode.
+---
 
+## 7. Build, Bundle & Static Cache Tooling (`j0/tooling/`)
+
+### `j0_backup_rotate()` (`j0-backup.php`)
+Copies or moves a file into a timestamped `_📦` backup (`<dir>/_📦<name>_<ISO-TS>.<ext>`).
 ```php
-require_once 'path/to/j0/tooling/j0-asset-tags.php';
+<?php
+require_once __DIR__ . '/j0/tooling/j0-backup.php';
 
-echo j0_asset_tags(__DIR__ . '/modules', __DIR__ . '/modules', './ui/', 'js', $isDebug);
+$bakCopy = j0_backup_rotate(__DIR__ . '/dist/app.js');
+$bakMove = j0_backup_rotate(__DIR__ . '/dist/old.js', "_\u{1F4E6}", null, true);
 ```
 
-### 12. `j0-static-html.php` — PHP-to-HTML Static Cache
-Serves a sibling `.html` file when its `mtime` is newer than the source `.php` and its dependencies; otherwise captures output, saves it atomically via `j0_smart_save()`, and prints it.
-
+### `j0_concat_files()` (`j0-concat.php`)
+Joins files in memory with normalized LF line endings, optional file header, and `/* === SOURCE: ... === */` boundary comments.
 ```php
-require_once 'path/to/j0/tooling/j0-static-html.php';
+<?php
+require_once __DIR__ . '/j0/tooling/j0-concat.php';
 
-j0_static_html(__FILE__, static function (): void {
-    echo '<h1>Static Snapshot</h1>';
+$bundle = j0_concat_files([__DIR__ . '/a.js', __DIR__ . '/b.js'], "\n;\n", '/*! Bundle v1 */', true);
+```
+
+### `j0_minify_extract_banner()`, `j0_minify_remote()`, `j0_minify_dispatch()`, `j0_minify_css()`, `j0_minify_js()` (`j0-minify.php`)
+Minifies CSS/JS via local plugin (`tooling/plugins/minify-local.php` or callable) or remote API while preserving leading `/*! ... */` license banners and falling back safely to uncompacted source with a warning header.
+```php
+<?php
+require_once __DIR__ . '/j0/tooling/j0-minify.php';
+
+$banner = j0_minify_extract_banner("/*! MIT License */\nbody { margin: 0; }");
+$minCss = j0_minify_css("/*! MIT */\nbody { color: red; }", ['allow_remote' => false]);
+$minJs  = j0_minify_js("function hi(){ return 1; }", [
+    'local_plugin' => static fn(string $code, string $type): string => preg_replace('/\s+/', ' ', $code),
+]);
+```
+
+### `j0_smart_save()` (`j0-save.php`)
+Writes atomically (`tmp` + `rename()`) only when the content MD5 differs from the existing file on disk, optionally rotating a `_📦` backup first.
+```php
+<?php
+require_once __DIR__ . '/j0/tooling/j0-save.php';
+
+$res = j0_smart_save(__DIR__ . '/dist/app.css', "body{margin:0}\n", true);
+// ['written' => true, 'backup' => '.../_📦app_2026-11-24T12-00-00.css', 'reason' => 'saved']
+```
+
+### `j0_build_bundle()` (`j0-build.php`)
+Scans sources, concatenates, writes `<name>.<ext>`, minifies, and writes `<name>.min.<ext>`.
+```php
+<?php
+require_once __DIR__ . '/j0/tooling/j0-build.php';
+
+$status = j0_build_bundle([
+    'sources'   => [__DIR__ . '/core.js', __DIR__ . '/modules'],
+    'out_file'  => __DIR__ . '/dist/app.js',
+    'ext'       => 'js',
+    'minify'    => true,
+    'backup'    => true,
+    'transform' => static fn(string $raw, string $ext): string => $raw,
+]);
+```
+
+### `j0_discover_bundles()` & `j0_build_bundles()` (`j0-bundles.php`)
+Discovers all active root-level module folders or standalone files in a directory and compiles/minifies each into `<name>.<ext>` + `<name>.min.<ext>` with SHA-1 `.sig` tracking.
+```php
+<?php
+require_once __DIR__ . '/j0/tooling/j0-bundles.php';
+
+$bundles = j0_discover_bundles(__DIR__ . '/ui/modules', 'css');
+$report  = j0_build_bundles(__DIR__ . '/ui/modules', 'css', ['allow_remote' => false]);
+```
+
+### `j0_asset_deps()` & `j0_asset_tags()` (`j0-asset-tags.php`)
+Rebuilds stale `.min` bundles using SHA-1 tree signatures, records scanned file dependencies for `j0_static_html()`, and emits either a single `.min` tag or individual debug tags.
+```php
+<?php
+require_once __DIR__ . '/j0/tooling/j0-asset-tags.php';
+
+$tags = j0_asset_tags(__DIR__ . '/modules', __DIR__ . '/dist/app', '/dist', 'js', false);
+$trackedFiles = j0_asset_deps(); // Returns all files scanned across j0_asset_tags() calls
+```
+
+### `j0_static_html()` (`j0-static-html.php`)
+Serves a sibling `.html` snapshot when newer than the PHP script and all tracked dependencies (`j0_asset_deps()` + explicit `$dependencies`); otherwise renders, saves atomically, and outputs HTML.
+```php
+<?php
+require_once __DIR__ . '/j0/tooling/j0-asset-tags.php';
+require_once __DIR__ . '/j0/tooling/j0-static-html.php';
+
+$js = j0_asset_tags(__DIR__ . '/modules', __DIR__ . '/dist/app', 'dist', 'js', false);
+
+j0_static_html(__FILE__, static function () use ($js): void {
+    echo "<!doctype html><html><head>{$js}</head><body><h1>Cached</h1></body></html>";
 }, [__DIR__ . '/partials']);
 ```
 
 ---
 
-## Layer 2: `j0/src/vfs/` & `j0/src/vfs--remote/` (Isomorphic Virtual File System)
+## 8. Isomorphic Virtual File System (`j0/src/0100-vfs/` & `0100-vfs--remote/`)
 
-Load the entire `j0/src/vfs/` module directory via `j0_asset_tags()` after `01-j0kernel.js`. Add `j0/src/vfs--remote/` only in applications that integrate `j0auth` and cloud document sync.
-
-### 1. Synchronous Key-Value, TTL & SSR Cookie Sync (`j0010-vfs-core.js`)
+### Key-Value Store, Drivers, Modes & SSR Cookie Sync (`j0010-vfs-core.js`)
 ```javascript
-// Register a UI key to mirror automatically to the compact 'j0_ui' SSR cookie (zero FOUC)
-window.j0.vfs.registerUiSync('ipax-theme', {
-    shortKey: 't',
-    encode: (v) => (v === 'light' ? 'l' : 'd'),
-    decode: (v) => (v === 'l' ? 'light' : 'dark')
-});
+(function () {
+    'use strict';
 
-window.j0.vfs.set('ipax-theme', 'dark', { profile: 'ui-sync' });
-const theme = window.j0.vfs.get('ipax-theme', 'light');
+    const vfs = globalThis.j0.vfs;
 
-// Expiring client cache (TTL in milliseconds)
-window.j0.vfs.set('draft_banner_dismissed', '1');
-const dismissed = window.j0.vfs.get('draft_banner_dismissed', '0', 86400000);
+    // 1. Register UI key to mirror to compact 'j0_ui' cookie (zero-FOUC SSR)
+    vfs.registerUiSync('theme', {
+        shortKey: 't',
+        encode: (v) => (v === 'light' ? 'l' : 'd'),
+        decode: (v) => (v === 'l' ? 'light' : 'dark')
+    });
+
+    // 2. Synchronous KV with optional TTL (milliseconds)
+    vfs.set('theme', 'dark', { profile: 'ui-sync' });
+    const currentTheme = vfs.get('theme', 'dark');
+
+    vfs.kv.set('banner_seen', '1');
+    const seen = vfs.kv.get('banner_seen', '0', 86400000);
+    vfs.kv.remove('banner_seen');
+
+    // 3. Storage Drivers & Modes ('local' vs 'hybrid-sync')
+    vfs.registerDriver('memory-custom', { name: 'custom' });
+    const drv = vfs.getDriver('memory-custom');
+    vfs.setMode('local');
+    const mode = vfs.mode(); // 'local'
+})();
 ```
 
-### 2. Content-Addressable Blobs & Offline/Online Document CRUD (`j0020-vfs-idb.js` + `j0030-vfs-docs.js`)
+### Content-Addressable Blobs & Offline/Online Documents (`j0020-vfs-idb.js` + `j0030-vfs-docs.js`)
 ```javascript
-// Store binary blobs deduplicated by SHA-256 hash in IndexedDB
-const hash = await window.j0.vfs.blobs.put(fileBlob);
-const blob = await window.j0.vfs.blobs.get(hash);
+(async function () {
+    'use strict';
 
-// Save, list, load, and export documents (works offline in 'local' mode and syncs in 'hybrid-sync')
-const saved = await window.j0.vfs.docs.save('projects', {
-    title: 'Landing Composition',
-    preview: 'Hero + 2 cards',
-    blobs: [hash],
-    data: { boxes: [] }
-});
+    const vfs = globalThis.j0.vfs;
 
-const allDocs = await window.j0.vfs.docs.list('projects');
-const portableBundle = await window.j0.vfs.docs.exportJson('projects', saved.id);
+    // 1. Content-Addressed Blobs (SHA-256 deduplicated in IndexedDB)
+    const sampleBlob = new Blob(['Hello j0'], { type: 'text/plain' });
+    const hash = await vfs.blobs.put(sampleBlob);
+    const exists = await vfs.blobs.has(hash);
+    const fetchedBlob = await vfs.blobs.get(hash);
+    const allHashes = await vfs.blobs.list();
+
+    // 2. Structured Documents CRUD + Portable JSON Export/Import
+    const saved = await vfs.docs.save('notes', {
+        title: 'Architecture Note',
+        preview: 'Zero tech debt',
+        blobs: [hash],
+        data: { tags: ['j0', 'vfs'] }
+    });
+
+    const loaded = await vfs.docs.get('notes', saved.id);
+    const list   = await vfs.docs.list('notes');
+    const bundle = await vfs.docs.exportJson('notes', saved.id);
+
+    await vfs.docs.remove('notes', saved.id);
+    const imported = await vfs.docs.importJson('notes', bundle);
+
+    // 3. Garbage Collection Check for Unreferenced Blobs
+    const orphanHashes = await vfs.docs.syncOrphans('notes');
+    for (const orphan of orphanHashes) {
+        await vfs.blobs.remove(orphan);
+    }
+})();
 ```
 
-### 3. PHP SSR Cookie Reader (`p0010-vfs-ssr.php`)
-Reads the `j0_ui` cookie written by `j0010-vfs-core.js` so PHP outputs the exact theme attribute on first byte:
-
+### PHP SSR Cookie Reader (`p0010-vfs-ssr.php`)
+Reads the `j0_ui` cookie written by `j0010-vfs-core.js` so PHP outputs exact UI attributes on the first byte.
 ```php
-require_once 'path/to/j0/src/vfs/p0010-vfs-ssr.php';
+<?php
+require_once __DIR__ . '/j0/src/0100-vfs/p0010-vfs-ssr.php';
 
-$theme = j0_vfs_ui_attr('theme', 'light');
-echo "<html lang=\"en\" data-theme=\"{$theme}\">";
+$cookieMap = [
+    't' => ['key' => 'theme', 'values' => ['l' => 'light', 'd' => 'dark']],
+];
+$allUiState = j0_vfs_read_ui_cookie($cookieMap);
+$themeAttr  = j0_vfs_ui_attr('theme', 'dark', $cookieMap);
+echo "<html lang=\"en\" data-theme=\"{$themeAttr}\">";
 ```
 
-### 4. Cloud Capability Extension (`j0/src/vfs--remote/j0010-vfs-remote.js`)
-- Listens automatically to `auth:login`, `auth:session-ready`, and `auth:logout` on `window.j0.bus`.
-- Switches `window.j0.vfs.mode()` between `'local'` and `'hybrid-sync'`, queues dirty offline edits in IndexedDB, and flushes pending writes when `online` fires.
-- Emits lifecycle events on `window.j0.bus`: `j0:vfs:mode-changed`, `j0:vfs:syncing`, `j0:vfs:synced`, `j0:vfs:sync-error`, `j0:vfs:changed`, and `j0:vfs:quota-exceeded`.
+### Remote Cloud Sync Extension (`0100-vfs--remote/j0100-vfs-remote.js`)
+Upgrades `j0.vfs` automatically to `'hybrid-sync'` when `auth:login` or `auth:session-ready` fires on `globalThis.j0.bus`, and reverts to `'local'` on `auth:logout`.
+```javascript
+(function () {
+    'use strict';
+
+    const j0 = globalThis.j0;
+    const vfs = j0.vfs;
+
+    vfs.configureRemote({
+        endpoint: '/api/vfs',
+        headers: { 'X-App-Client': 'web' }
+    });
+
+    // Listen to sync lifecycle events
+    j0.bus.on('j0:vfs:mode-changed', ({ mode }) => j0.logger.log('VFS mode:', mode));
+    j0.bus.on('j0:vfs:syncing', ({ collection }) => j0.logger.log('Syncing:', collection));
+    j0.bus.on('j0:vfs:synced', ({ collection, count }) => j0.logger.log('Synced:', collection, count));
+    j0.bus.on('j0:vfs:sync-error', ({ message }) => j0.logger.error('Sync error:', message));
+
+    // Trigger authenticated hybrid-sync
+    j0.bus.emit('auth:login', { token: 'jwt-or-session-token' });
+
+    // Manual driver operations if needed
+    const remote = vfs.getDriver('remote');
+    if (remote) {
+        remote.syncDirty('notes');
+    }
+})();
+```
+
+---
+
+## 9. Declarative UI Engines (`j0/src/0500-ui-patterns/`)
+
+All 5 engines bind via `data-j0-*` attributes (zero `id=""` hooks, zero inline `onclick`).
+
+### 1. Emitter (`j0501-emitter.js`)
+Dispatches click/touchend triggers (`data-j0-action`, optional JSON `data-j0-payload`, `50ms` anti-double-fire guard, respects `disabled` and `.is-disabled`) onto `globalThis.j0.bus`.
+```html
+<button type="button" data-j0-action="item:delete" data-j0-payload='{"itemId":42}'>Delete Item</button>
+```
+```javascript
+globalThis.j0.bus.on('item:delete', ({ itemId, trigger }) => {
+    globalThis.j0.logger.log('Deleting item', itemId, trigger);
+});
+```
+
+### 2. Switcher (`j0502-switcher.js`)
+Coordinates tabs (`[data-j0-tab-group]`, `[data-j0-target]`) and panels (`[data-j0-pane-group]`, `[data-j0-panel]`), plus programmatic `j0.ui.switchPane()` and `j0.ui.activateItem()`.
+```html
+<div data-j0-tab-group="inspector">
+    <button type="button" class="j0ui-active" data-j0-target="oklch">OKLCH</button>
+    <button type="button" data-j0-target="rgb">RGB</button>
+</div>
+<div data-j0-pane-group="inspector">
+    <section class="j0ui-active" data-j0-panel="oklch">OKLCH Controls</section>
+    <section data-j0-panel="rgb">RGB Controls</section>
+</div>
+```
+```javascript
+// Programmatic switching
+globalThis.j0.ui.switchPane('inspector', 'rgb');
+```
+
+### 3. Binder (`j0503-binder.js`)
+Two-way synchronization across inputs, selects, textareas, radios, checkboxes, `<output>`, and text sinks (`data-j0-bind`, `data-j0-bind-scope`, `data-j0-bind-scale`, `data-j0-bind-transform`, `data-j0-bind-format`, `data-j0-bind-debounce`). Built-in transforms: `length`, `percent`, `round`, `abs`, `invert`, `bool`.
+```html
+<div data-j0-bind-scope="color-panel">
+    <input type="range" data-j0-bind="lightness" min="0" max="100" value="50">
+    <input type="number" data-j0-bind="lightness" data-j0-bind-scale="0.01" step="0.01" value="0.50">
+    <output data-j0-bind="lightness" data-j0-bind-transform="percent">50%</output>
+    <textarea data-j0-bind="bio" data-j0-bind-debounce="100"></textarea>
+    <span data-j0-bind="bio" data-j0-bind-transform="length">0</span>
+</div>
+```
+```javascript
+// Custom transform + programmatic update + dynamic DOM re-scan
+globalThis.j0.ui.bindTransforms.upper = (val) => String(val ?? '').toUpperCase();
+globalThis.j0.ui.bind('lightness', 0.75, 'color-panel');
+globalThis.j0.ui.initBindings(document);
+```
+
+### 4. Conditioner (`j0504-conditioner.js`)
+Declarative visibility and availability (`data-j0-show-when`, `data-j0-hide-when`, `data-j0-enable-when`) driven by `j0.ui.setState(channel, value)` and `j0.ui.getState(channel)`.
+```html
+<div data-j0-show-when="auth:logged-in">Welcome back</div>
+<div data-j0-hide-when="auth:logged-in">Please sign in</div>
+<button type="button" data-j0-enable-when="form:valid">Submit</button>
+```
+```javascript
+globalThis.j0.ui.setState('auth', 'logged-in');
+globalThis.j0.ui.setState('form', 'valid');
+const currentAuth = globalThis.j0.ui.getState('auth'); // 'logged-in'
+```
+
+### 5. Dragger (`j0505-dragger.js`)
+Pointer and keyboard dragging with rectangular/circular/viewport bounds (`j0.ui.dragBounds`), cartesian/axis/polar coordinate transforms (`j0.ui.dragTransform`), snapping, momentum, ghost preview, and multi-thumb collision groups (`push`, `stop`, `snap`).
+```html
+<!-- Declarative multi-thumb range group -->
+<div data-j0-drag-group-container data-j0-drag-axis="x" data-j0-drag-collide="push" data-j0-drag-order="min-val,max-val">
+    <div data-j0-draggable data-j0-bind="min-val"></div>
+    <div data-j0-draggable data-j0-bind="max-val"></div>
+</div>
+```
+```javascript
+// Programmatic draggable with circular bounds & polar output
+const handle = globalThis.j0.ui.draggable(wheelKnobEl, {
+    bounds: globalThis.j0.ui.dragBounds.circle(wheelContainerEl),
+    transform: globalThis.j0.ui.dragTransform.polar(),
+    snap: 0.01,
+    momentum: true,
+    onMove: ({ value }) => {
+        globalThis.j0.logger.log('Polar coords', value.angle, value.radius);
+    }
+});
+// Cleanup when unmounting: handle.destroy();
+```
