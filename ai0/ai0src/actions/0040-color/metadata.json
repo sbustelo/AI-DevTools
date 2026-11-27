@@ -1,0 +1,20 @@
+{
+    "id": "set_color",
+    "label": {
+        "en": "Color",
+        "es": "Color"
+    },
+    "icon": "🎨",
+    "applies_to": ["dir"],
+    "submenu": [
+        { "value": "",       "icon": "⚪", "label": { "en": "No color", "es": "Sin color" } },
+        { "value": "red",    "icon": "🔴", "label": { "en": "Red",      "es": "Rojo" } },
+        { "value": "orange", "icon": "🟠", "label": { "en": "Orange",   "es": "Naranja" } },
+        { "value": "yellow", "icon": "🟡", "label": { "en": "Yellow",   "es": "Amarillo" } },
+        { "value": "green",  "icon": "🟢", "label": { "en": "Green",    "es": "Verde" } },
+        { "value": "blue",   "icon": "🔵", "label": { "en": "Blue",     "es": "Azul" } },
+        { "value": "violet", "icon": "🟣", "label": { "en": "Violet",   "es": "Violeta" } },
+        { "value": "brown",  "icon": "🟤", "label": { "en": "Brown",    "es": "Marrón" } },
+        { "value": "black",  "icon": "⚫", "label": { "en": "Black",    "es": "Negro" } }
+    ]
+}

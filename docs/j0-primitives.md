@@ -1,6 +1,6 @@
 # `j0 v2` Complete Function, Module & Pattern Reference
 
-Every file under `ai0/j0/` is a zero-dependency PHP 8.2+ or Vanilla ES2020+ module organized into `quickstart/`, `api.php`, `core/`, `tooling/`, `j0-locate.php`, and `src/`. Every PHP file can be included standalone via `require_once` or loaded lazily by domain via `j0_use()`.
+Every file under `ai0/j0/` is a zero-dependency PHP 8.2+ or Vanilla ES2020+ module organized into `quickstart/`, `api.php`, `core/` (pure PHP), and OS-layered `src/`. Every PHP file can be included standalone via `require_once` or loaded lazily by domain via `j0_use()`.
 
 ---
 
@@ -152,7 +152,7 @@ $sig   = j0_dir_signature(__DIR__ . '/src', ['js', 'css']);
 
 ---
 
-## 5. Unified Micro-Kernel (`j0/core/01-j0kernel.js`)
+## 5. Unified Micro-Kernel (`j0/src/0010-kernel/j0010-kernel.js`)
 
 Anchored on `globalThis.j0` so identical code runs in browser windows, Web Workers, and sandboxed plugin threads.
 
@@ -199,7 +199,7 @@ Anchored on `globalThis.j0` so identical code runs in browser windows, Web Worke
 
 ---
 
-## 6. Resilient Locator & Primitives `S()` / `T()` (`j0/j0-locate.php`)
+## 6. Resilient Locator & Primitives `S()` / `T()` (`j0/core/j0-locate.php`)
 
 ### `j0_locate_init()`, `j0_project_root()`, `j0_mount()`, `j0_route_cache_read()`, `j0_route_cache_write()`
 Configures the host root, mounts loose directories (Library Mode), and reads/writes the guarded `.j0route.php` OPcache map.
@@ -274,13 +274,13 @@ $finalHtml  = j0_interpolate_text($withMacros, [
 
 ---
 
-## 7. Build, Bundle & Static Cache Tooling (`j0/tooling/`)
+## 7. Assets, Cache, FS-IO & Bundler (`j0/src/0120-assets/`, `0130-cache/`, `0180-fs-io/`, `0190-bundler/`)
 
-### `j0_backup_rotate()` (`j0-backup.php`)
+### `j0_backup_rotate()` (`0180-fs-io/p0010-backup.php`)
 Copies or moves a file into a timestamped `_📦` backup (`<dir>/_📦<name>_<ISO-TS>.<ext>`).
 ```php
 <?php
-require_once __DIR__ . '/j0/tooling/j0-backup.php';
+j0_use('fs-io');
 
 $bakCopy = j0_backup_rotate(__DIR__ . '/dist/app.js');
 $bakMove = j0_backup_rotate(__DIR__ . '/dist/old.js', "_\u{1F4E6}", null, true);
@@ -486,9 +486,9 @@ Upgrades `j0.vfs` automatically to `'hybrid-sync'` when `auth:login` or `auth:se
 
 ---
 
-## 9. Declarative UI Engines (`j0/src/0500-ui-patterns/`)
+## 9. Declarative UI Engines (`j0/src/0500-ui-patterns/`, `0510-ui-menus/`, `0520-ui-windows/`)
 
-All 5 engines bind via `data-j0-*` attributes (zero `id=""` hooks, zero inline `onclick`).
+All 6 pattern engines bind via `data-j0-*` attributes (zero `id=""` hooks, zero inline `onclick`), complemented by `0510-ui-menus` (body-ported dropdowns & safe-zone submenus) and `0520-ui-windows` (`j0-pane` / `j0-region` fractal layout, 3D Flip `j0-window`, and `j0ui-window-sheet`).
 
 ### 1. Emitter (`j0501-emitter.js`)
 Dispatches click/touchend triggers (`data-j0-action`, optional JSON `data-j0-payload`, `50ms` anti-double-fire guard, respects `disabled` and `.is-disabled`) onto `globalThis.j0.bus`.
@@ -571,3 +571,6 @@ const handle = globalThis.j0.ui.draggable(wheelKnobEl, {
 });
 // Cleanup when unmounting: handle.destroy();
 ```
+
+### 6. Floater (`j0506-floater.js`)
+Viewport-clamped floating positioning (`j0.ui.floatAt(el, x, y)`, `j0.ui.floatCloseAll()`) with global quiescence on outside clicks, `Escape`, and `ui:dismiss` bus events.

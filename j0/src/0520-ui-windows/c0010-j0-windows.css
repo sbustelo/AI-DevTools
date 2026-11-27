@@ -1,0 +1,386 @@
+/* PATH: j0/src/0520-ui-windows/c0010-j0-windows.css */
+/* Window & Fractal Pane Layout — j0-app-shell, j0-layout, j0-pane, j0-region, j0-window (3D Flip) */
+
+j0-app-shell,
+j0-viewport,
+j0-dock-slot,
+j0-workspace,
+j0-window,
+j0-layout,
+j0-pane,
+j0-region,
+j0-mount,
+j0-icon-toggle {
+    box-sizing: border-box;
+}
+
+j0-window *,
+j0-mount * {
+    box-sizing: border-box;
+}
+
+/* App Shell & Topology */
+j0-app-shell {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--ipax-this-paper);
+    font-family: var(--ipax-font-ui);
+    font-size: var(--ipax-pt-11);
+    color: var(--ipax-this-ink);
+    -webkit-font-smoothing: antialiased;
+}
+
+j0-viewport {
+    display: block;
+    flex-grow: 1;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+j0-dock-slot {
+    display: block;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    transition: width 0.3s;
+}
+
+j0-dock-slot[state="empty"] {
+    width: 0;
+}
+
+j0-workspace {
+    display: block;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 10;
+}
+
+j0-registry {
+    display: none;
+}
+
+/* Fractal Layout Chain: j0-layout -> j0-pane -> j0-region */
+j0-layout[active] {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+j0-pane {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+j0-pane[axis="x"] {
+    flex-direction: row;
+}
+
+j0-pane[role="nav"] {
+    flex-direction: column;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: var(--j0ui-pane-nav-width, 160px);
+    min-height: 0;
+    border-right: var(--ipax-0-border-width) solid var(--ipax-border-line);
+}
+
+j0-pane[role="main"] {
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+}
+
+j0-region {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+j0-region[role="head"] {
+    flex-shrink: 0;
+}
+
+j0-region[role="body"] {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+j0-region[role="foot"] {
+    flex-shrink: 0;
+    border-top: var(--ipax-0-border-width) solid var(--ipax-border-line);
+}
+
+j0-mount {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+    min-height: 0;
+}
+
+/* Window Shell */
+j0-window {
+    position: absolute;
+    z-index: var(--ipax-z-window);
+    display: flex;
+    flex-direction: column;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    background-color: var(--ipax-this-paper);
+    border: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    border-radius: var(--ipax-0-radius-lg);
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--ipax-this-ink) 20%, transparent);
+    width: 320px;
+    height: 400px;
+    min-width: 180px;
+    min-height: 80px;
+    overflow: hidden;
+    will-change: transform, left, top;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+j0-window.j0ui-window-active {
+    border-color: var(--ipax-this-accent);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ipax-this-ink) 28%, transparent);
+}
+
+j0-window.j0ui-window-minimized {
+    height: auto;
+    min-height: 1em;
+}
+
+j0-window.j0ui-window-minimized j0-layout,
+j0-window.j0ui-window-minimized .j0ui-resizer {
+    display: none;
+}
+
+/* 3D Flip Architecture */
+j0-window.is-flippable {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.j0ui-window-perspective {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.j0ui-window-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background-color: var(--ipax-this-paper);
+    border: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    border-radius: var(--ipax-0-radius-lg);
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--ipax-this-ink) 20%, transparent);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+j0-window.j0ui-window-active.is-flippable .j0ui-window-face {
+    border-color: var(--ipax-this-accent);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ipax-this-ink) 28%, transparent);
+}
+
+.j0ui-window-face--front {
+    transform: rotateY(0deg);
+    z-index: 2;
+}
+
+.j0ui-window-face--back {
+    transform: rotateY(180deg);
+    z-index: 1;
+}
+
+j0-window.is-flipped .j0ui-window-perspective {
+    transform: perspective(1000px) rotateY(180deg);
+}
+
+j0-window.is-flipping {
+    overflow: visible;
+}
+
+j0-window.is-flipping .j0ui-window-face {
+    box-shadow: none;
+}
+
+j0-window.is-flipping .j0ui-resizer {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Window Header */
+.j0ui-shell-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 var(--ipax-0-space-sm);
+    height: var(--ipax-0-header-height);
+    background-color: var(--ipax-surface-tint);
+    border-bottom: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    font-size: var(--ipax-pt-11);
+    font-weight: var(--ipax-1-weight-semibold);
+    color: var(--ipax-this-ink);
+    user-select: none;
+    flex-shrink: 0;
+    cursor: move;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.j0ui-window-title {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 4px;
+}
+
+.j0ui-window-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--j0ui-text-muted);
+    margin-right: 2px;
+    flex-shrink: 0;
+}
+
+.j0ui-window-icon img,
+.j0ui-window-icon svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+    object-fit: contain;
+    flex-shrink: 0;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.j0ui-window-controls-custom {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 4px;
+}
+
+.j0ui-window-controls-system {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+}
+
+/* Scroll Area */
+.j0ui-scroll-area {
+    flex-grow: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--j0ui-border-input, var(--j0ui-border-subtle)) transparent;
+}
+
+.j0ui-scroll-inner {
+    padding: 8px var(--j0ui-space-md);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Resizer */
+.j0ui-resizer {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 14px;
+    height: 14px;
+    cursor: nwse-resize;
+    z-index: 100;
+    background: linear-gradient(135deg, transparent 50%, var(--j0ui-text-muted) 50%);
+    opacity: 0.25;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    transition: opacity 0.15s;
+}
+
+.j0ui-resizer:hover {
+    opacity: 0.85;
+}
+
+/* Compact Ghost Button */
+.j0ui-btn-ghost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--j0ui-text-secondary, var(--j0ui-text-muted));
+    border-radius: var(--j0ui-radius-sm);
+    min-width: var(--j0ui-size-input, 26px);
+    height: var(--j0ui-size-input, 26px);
+    cursor: pointer;
+    font-size: var(--j0ui-size-font-sm, 12px);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+}
+
+.j0ui-btn-ghost:hover {
+    background: var(--j0ui-bg-hover);
+    color: var(--j0ui-text-main);
+    border-color: var(--j0ui-border-subtle);
+}
+
+/* Icon Toggle */
+j0-icon-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+j0-icon-toggle:hover {
+    opacity: 0.8;
+}
+
+j0-icon-toggle[state="off"] {
+    color: var(--j0ui-text-muted);
+    opacity: 0.4;
+}
+
+/* Region Utilities */
+.j0ui-region-padded {
+    padding: var(--j0ui-space-md);
+}
+
+.j0ui-region-gap {
+    gap: var(--j0ui-space-sm);
+}

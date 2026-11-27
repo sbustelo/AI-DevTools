@@ -1,0 +1,9 @@
+{
+    "id": "open_in_browser",
+    "label": {
+        "en": "Open in Browser",
+        "es": "Abrir en Navegador"
+    },
+    "icon": "🌐",
+    "applies_to": ["file", "dir"]
+}

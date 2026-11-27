@@ -11,10 +11,10 @@ $stubConfig = [
     'on_missing'  => 'strict',
     'bundle_name' => '',
     'targets'     => [
-        '_ai0/j0/tooling/j0-build.php',
-        'ai0/j0/tooling/j0-build.php',
-        '_j0/tooling/j0-build.php',
-        'j0/tooling/j0-build.php',
+        '_ai0/j0/src/0190-bundler/p0040-build.php',
+        'ai0/j0/src/0190-bundler/p0040-build.php',
+        '_j0/src/0190-bundler/p0040-build.php',
+        'j0/src/0190-bundler/p0040-build.php',
     ],
 ];
 

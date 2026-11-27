@@ -1,0 +1,9 @@
+{
+    "id": "snapshot",
+    "label": {
+        "en": "Snapshot",
+        "es": "Snapshot"
+    },
+    "icon": "📦",
+    "applies_to": ["file", "dir"]
+}

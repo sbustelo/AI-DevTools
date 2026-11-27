@@ -1,0 +1,115 @@
+/* PATH: j0/src/0530-ui-dialogs/c0010-j0-dialogs.css */
+/* Native <dialog> component for j0 v2 — 100% IPAX 2 tokens */
+
+.j0-dialog {
+    border: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    border-radius: var(--ipax-0-radius-lg);
+    padding: 0;
+    background: var(--ipax-this-paper);
+    color: var(--ipax-this-ink);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--ipax-0-ink-x) var(--ipax-0-shadow-pct), transparent);
+    width: min(420px, calc(100vw - 32px));
+    margin: auto;
+    z-index: var(--ipax-z-modal);
+    font-family: var(--ipax-font-ui);
+}
+
+.j0-dialog::backdrop {
+    background: color-mix(in srgb, var(--ipax-0-ink-x) 52%, transparent);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.j0-dialog-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ipax-0-space-md);
+    padding: var(--ipax-0-space-md);
+}
+
+.j0-dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.j0-dialog-icon {
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.j0-dialog-icon[data-j0-hidden="true"] {
+    display: none;
+}
+
+.j0-dialog-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: var(--ipax-1-weight-semibold);
+    font-family: inherit;
+    color: var(--ipax-this-ink);
+}
+
+.j0-dialog-content {
+    font-size: 13px;
+    line-height: var(--ipax-0-line-height);
+    color: var(--ipax-text-muted);
+    white-space: pre-line;
+}
+
+.j0-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.j0-dialog-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ipax-0-btn-pad-y) var(--ipax-0-btn-pad-x);
+    border: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    border-radius: var(--ipax-0-radius-sm);
+    background: var(--ipax-surface-tint);
+    color: var(--ipax-this-ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: var(--ipax-1-weight-medium);
+    cursor: pointer;
+    transition: border-color var(--ipax-0-transition) ease, filter var(--ipax-0-transition) ease;
+}
+
+.j0-dialog-btn:hover,
+.j0-dialog-btn:focus-visible {
+    border-color: var(--ipax-this-accent);
+    outline: none;
+}
+
+.j0-dialog-btn--primary {
+    background: var(--ipax-1-accent);
+    border-color: var(--ipax-1-accent);
+    color: var(--ipax-0-paper-x);
+}
+
+.j0-dialog-btn--danger {
+    background: var(--ipax-0-danger);
+    border-color: var(--ipax-0-danger);
+    color: var(--ipax-0-paper-x);
+}
+
+.j0-dialog-btn--primary:hover,
+.j0-dialog-btn--primary:focus-visible,
+.j0-dialog-btn--danger:hover,
+.j0-dialog-btn--danger:focus-visible {
+    border-color: var(--ipax-0-paper-x);
+    filter: brightness(1.08);
+}
+
+@media (max-width: 480px) {
+    .j0-dialog-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+}

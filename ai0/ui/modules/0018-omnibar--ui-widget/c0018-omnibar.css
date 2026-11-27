@@ -1,0 +1,82 @@
+/* PATH: ai0/ui/modules/0018-omnibar--ui-widget/c0018-omnibar.css */
+.j0ui-root-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 180px;
+    padding: 4px 9px;
+    border-radius: var(--ipax-0-radius-sm);
+    border: var(--ipax-0-border-width) solid color-mix(in srgb, var(--ipax-0-success) 45%, var(--ipax-border-line));
+    background: color-mix(in srgb, var(--ipax-0-success) 10%, var(--ipax-surface-tint));
+    color: var(--ipax-this-ink);
+    font-family: var(--ipax-font-mono);
+    font-size: 12px;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.j0ui-root-chip:hover,
+.j0ui-root-chip:focus-visible {
+    border-color: var(--ipax-this-accent);
+    background: var(--ipax-surface-tint);
+    outline: none;
+}
+
+.j0ui-root-chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.j0ui-omnibar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 260px;
+    min-width: 200px;
+    max-width: 540px;
+}
+
+.j0ui-omnibar-input {
+    width: 100%;
+    padding: 5px 30px 5px 10px;
+}
+
+.j0ui-omnibar[data-j0-mode="commands"] .j0ui-omnibar-input {
+    padding-right: 128px;
+    border-color: var(--ipax-this-accent);
+}
+
+.j0ui-omnibar-badge {
+    position: absolute;
+    right: 28px;
+    pointer-events: none;
+    font-size: 10px;
+    padding: 1px 6px;
+}
+
+.j0ui-omnibar-clear {
+    position: absolute;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ipax-0-radius-sm);
+    background: transparent;
+    color: var(--ipax-text-muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.j0ui-omnibar-clear:hover,
+.j0ui-omnibar-clear:focus-visible {
+    background: var(--ipax-surface-tint);
+    color: var(--ipax-this-ink);
+    outline: none;
+}

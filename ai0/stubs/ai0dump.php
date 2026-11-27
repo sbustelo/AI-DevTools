@@ -9,8 +9,8 @@ if (!defined('J0_EXEC')) {
 $stubConfig = [
     'repo_url'   => 'https://github.com/sbustelo/AI-DevTools',
     'on_missing' => 'strict',
-    'cache_key'  => '__ai0_dumper__',
-    'targets'    => ['_ai0/tools/dumper/index.php', 'ai0/tools/dumper/index.php'],
+    'cache_key'  => '__ai0_files__',
+    'targets'    => ['_ai0/tools/files/index.php', 'ai0/tools/files/index.php', '_ai0/tools/dumper/index.php', 'ai0/tools/dumper/index.php'],
 ];
 
 (static function (string $startDir, array $cfg): void {
@@ -32,7 +32,7 @@ $stubConfig = [
                 $depth = $sub === '' ? 0 : count(explode('/', $sub));
                 $GLOBALS['ai0_context'] = [
                     'root'       => $cachedRoot,
-                    'match'      => $baseDir . '/tools/dumper/index.php',
+                    'match'      => $baseDir . '/tools/files/index.php',
                     'base_dir'   => $baseDir,
                     'target_abs' => $cached,
                     'origin_abs' => $origin,

@@ -28,7 +28,7 @@ Below is a reasonable adoption path, based on how I applied, re-applied, and evo
 
 ## 1. First Adoption: The JS Kernel (EventBus)
 
-The first piece of `j0` is the **JavaScript Kernel** (`01-j0kernel.js`). It is a tiny 4 KB file (2 KB minified) that eliminates frontend complexity and fragile `import`/`export` trees.
+The first piece of `j0` is the **JavaScript Kernel** (`j0010-kernel.js`). It is a tiny 4 KB file (2 KB minified) that eliminates frontend complexity and fragile `import`/`export` trees.
 
 In my experiments, I found that LLMs stop breaking files (e.g., deleting or breaking working parts when adding a new one) if they do not exceed **100–150 lines**. `j0`'s survival rule is to always keep code separated into small files that do not rigidly depend on each other. To achieve this, `j0` uses a centralized **EventBus** and self-executing functions (**IIFEs**).
 
@@ -106,8 +106,10 @@ Instead of writing `document.getElementById('btn').addEventListener(...)` for ev
   ```
 - **DRAGGER (Pointer & Keyboard Manipulation):** Handles bounded dragging, snapping, and multi-thumb collision groups (`data-j0-draggable`, `data-j0-drag-group-container`).
 
-### Quiescence & Ephemeral Components (Floater — Architectural Specification)
-The 6th declarative UI pattern (**Floater**) specifies global quiescence (`ui:dismiss` on `globalThis.j0.bus` before opening modals or on outside clicks/Escape) and physical teleportation of dropdowns and popovers to `<body>` to escape `overflow: hidden` containers. Following YAGNI, `Floater` remains specified until required by an active consumer.
+### 6. Quiescence, Ephemeral Menus & Fractal Panes (`j0506-floater.js`, `0510-ui-menus`, `0520-ui-windows`)
+- **Floater (`j0506-floater.js`):** Handles viewport-clamped floating menus and global quiescence (`ui:dismiss` on `globalThis.j0.bus`, outside clicks, and `Escape`).
+- **Menus (`0510-ui-menus/`):** Teleports `.j0-dropdown-menu` to `document.body` to escape `overflow: hidden` / `backdrop-filter` stacking contexts and provides directional safe-zone submenus.
+- **Windows & Fractal Panes (`0520-ui-windows/`):** Provides `j0-pane` + `j0-region[role="head|body|foot"]` desktop-style `100dvh` layouts alongside 3D-flippable `j0-window` shells.
 
 ---
 
@@ -140,9 +142,9 @@ The VFS decentralizes state across clean, composable layers:
 
 - **[AI-DevTools (`ai0`)](https://github.com/sbustelo/AI-DevTools):** The modular developer tooling suite (`dumper`, `patcher`, `restore`, `purge`) that helped shape `j0 v2` as a standalone, zero-dependency library. Represents the lightweight entry point of the spectrum.
 
-- **[ipax-scoring](https://github.com/sbustelo/ipax-scoring):** Uses the standalone `j0` JavaScript kernel (`01-j0kernel.js`).
+- **[ipax-scoring](https://github.com/sbustelo/ipax-scoring):** Uses the standalone `j0` JavaScript kernel (`j0010-kernel.js`).
 
-- **[ipax-backdrop](https://github.com/sbustelo/ipax-backdrop):** Uses the standalone `j0` JavaScript kernel (`01-j0kernel.js`).
+- **[ipax-backdrop](https://github.com/sbustelo/ipax-backdrop):** Uses the standalone `j0` JavaScript kernel (`j0010-kernel.js`).
 
 - **[FlowStyler](https://flowstyler.com/):** The flagship `j0 v1` application—a Unicode text-styling processor whose UI is resolved cleanly with a single editing area and a tabbed palette, backed by multilingual content, multiple build targets (web and browser extension), asset bundlers, and blue/green deployments. Sitting at the opposite pole from `ai0`, FlowStyler exposed where `j0 v1` introduced coupling and rigidity—prompting the inside-out redesign of `j0 v2`. **The core architectural challenge of `j0 v2` is making it possible to start as lightweight as `ai0` on Day 1 and scale all the way to `FlowStyler` without rewriting your architecture.**
 

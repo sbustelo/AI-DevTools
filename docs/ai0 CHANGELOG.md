@@ -4,6 +4,24 @@ All notable changes to **AI-DevTools** (`ai0` and `AI-PerkeleProtocols`) are doc
 
 ---
 
+## 5.0.10 • 27/nov/2026
+
+- **Unified `Files` Workspace (`View` Inspector + `Dump` + `Purge` + `Restore`):**
+  - Evolved `dumper` into **`Files`** (`ai0/tools/files/`), a full-viewport (`100dvh`) desktop-style browser with a resizable splitter, persistent VFS tab/tree state, and 4 integrated right-pane tools: **`View`** (Finder-style inspector with metadata, permissions lock, inline rename, preview, and `↩ Container` reset), **`Dump`**, **`Purge`** (with header-aligned `Delete selected items (N)` CTA), and **`Restore`**.
+  - Added folder visual orientation for large repositories: `.ai0root.json` custom SVG/emoji icons via the **Icon Picker** modal (`ai0-icons.php` SSOT) and **Finder-style cascading folder color labels** using opaque surface mixing calibrated for Light and Dark modes.
+  - Added shallow 1-level browsing outside the active Project Root with explicit *Set this as project root* confirmation and a *Declared Project Roots* switcher.
+- **Topbar `Project Root` Chip, Omnibar & Postel Path Resolver (`0018-omnibar--ui-widget`, `ai0-path-resolver.php`):**
+  - Decoupled **Project Root** (persisted in `_j0-temp/ai0-state.json`) from **Browse Path** (`?browse=`), keeping `patcher` and `i18n-batch` anchored to the active project while exploring arbitrary directories in `Files`.
+  - Added the **Omnibar** (`Path, ai0 commands, or terms to search for...`): accepts pasted multi-line `ai0 commands` (submitting to `patcher` on `Enter`), resolves contextual paths via Postel's Principle (`ai0-path-resolver.php`), and falls back to live recursive tree search with bulk match checkboxes and a path-menu `🔍 Search results in <root>` entry.
+- **Simplified `patcher` & `=== ROOT: ===` Safety Guard:**
+  - Removed redundant directory navigation and `Target Folder Items` from `patcher`, auto-clearing the commands textarea after error-free execution, and replacing *"payload"* terminology with **`ai0 commands`**.
+  - Added `// Project root:` headers to `DUMP` outputs and `=== ROOT: /abs/path ===` pragma parsing in `PatcherParser`; when declared root differs from the active Project Root, `patcher` halts and opens a confirmation modal before touching disk.
+- **`j0 v2` UI OS Modules (`0510-ui-menus`, `0520-ui-windows`) & Modular `ai0` Actions (`ai0/ai0src/actions/`):**
+  - Added `j0/src/0510-ui-menus/` (body-ported dropdowns immune to `backdrop-filter`, directional safe-zone submenus, centralized `--j0ui-z-*` tokens) and ported `j0/src/0520-ui-windows/` (`j0-pane` / `j0-region[role="head|body|foot"]` fractal layout, 3D Flip `j0-window`, and `j0ui-window-sheet`).
+  - Added modular context-menu actions under `ai0/ai0src/actions/` (`rename`, `toggle`, `snapshot`, `color`, `open-in-finder` with `finder.svg`, `open-in-browser`, `open-in-editor`, `discard`).
+
+---
+
 ## 5.0.02 • 24/nov/2026
 
 - **Resilient Resource Locator & Location-Independent Primitives (`S()`, `T()`):**

@@ -1,5 +1,5 @@
 <?php
-// PATH: ai0-0010/tools/restore/restore-manager.php
+// PATH: ai0/tools/restore/restore-manager.php
 declare(strict_types=1);
 
 final class RestoreManager
@@ -21,11 +21,14 @@ final class RestoreManager
             return ['batches' => [], 'total_files' => 0];
         }
 
-        $ignoreDirs = ['.git', 'node_modules', 'vendor', '_j0-temp', '_ai0', 'ai0', '_ai0config', 'ai0config', '_j0', 'j0', '_j0config', 'j0config'];
+        $ignoreDirs = ['.git', 'node_modules', 'vendor', '_j0-temp'];
         $dirIter = new RecursiveDirectoryIterator($scanBase, FilesystemIterator::SKIP_DOTS);
         $filterIter = new RecursiveCallbackFilterIterator(
             $dirIter,
             static function (SplFileInfo $current) use ($ignoreDirs): bool {
+                if ($current->isLink()) {
+                    return false;
+                }
                 if ($current->isDir()) {
                     return !in_array($current->getFilename(), $ignoreDirs, true);
                 }

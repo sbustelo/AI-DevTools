@@ -1,0 +1,92 @@
+{
+    "report": {
+        "root": {
+            "icon": "📁",
+            "class": "j0ui-icon-mono"
+        },
+        "error": {
+            "title": {
+                "icon": "🚨",
+                "class": "j0ui-icon-error"
+            },
+            "item": {
+                "icon": "❌",
+                "class": "j0ui-icon-error"
+            }
+        },
+        "warning": {
+            "title": {
+                "icon": "⚠️",
+                "class": "j0ui-icon-warning"
+            },
+            "item": {
+                "icon": "🤨",
+                "class": "j0ui-icon-desat"
+            }
+        },
+        "dry_run": {
+            "title": {
+                "icon": "🧪",
+                "class": "j0ui-icon-accent"
+            }
+        },
+        "ok": {
+            "title": {
+                "icon": "✅",
+                "class": "j0ui-icon-ok"
+            },
+            "items": {
+                "created": {
+                    "icon": "👍🏻",
+                    "class": "j0ui-icon-ok"
+                },
+                "updated": {
+                    "icon": "👌🏻",
+                    "class": "j0ui-icon-ok"
+                },
+                "moved": {
+                    "icon": "📦",
+                    "class": "j0ui-icon-mono"
+                },
+                "disabled": {
+                    "icon": "🫥",
+                    "class": "j0ui-icon-mono"
+                },
+                "discarded": {
+                    "icon": "🗑️",
+                    "class": "j0ui-icon-mono"
+                },
+                "inspect": {
+                    "icon": "📄",
+                    "class": "j0ui-icon-mono"
+                },
+                "default": {
+                    "icon": "✅",
+                    "class": "j0ui-icon-ok"
+                }
+            }
+        }
+    },
+    "context_menu": {
+        "rename": {
+            "icon": "✏️",
+            "class": "j0ui-icon-mono"
+        },
+        "toggle_disable": {
+            "icon": "🫥",
+            "class": "j0ui-icon-mono"
+        },
+        "reveal": {
+            "icon": "🔍",
+            "class": "j0ui-icon-mono"
+        },
+        "snapshot": {
+            "icon": "📦",
+            "class": "j0ui-icon-mono"
+        },
+        "discard": {
+            "icon": "🗑️",
+            "class": "j0ui-icon-mono"
+        }
+    }
+}

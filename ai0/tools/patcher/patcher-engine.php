@@ -2,7 +2,10 @@
 // PATH: ai0/tools/patcher/patcher-engine.php
 declare(strict_types=1);
 
-require_once dirname(__DIR__, 2) . '/j0/tooling/j0-backup.php';
+if (function_exists('j0_use')) {
+    j0_use('fs-io');
+}
+require_once dirname(__DIR__) . '/files/dumper-formatter.php';
 require_once __DIR__ . '/patcher-katex-guard.php';
 
 final class PatcherEngine
@@ -22,11 +25,22 @@ final class PatcherEngine
      * @param array<int, array<string, mixed>> $operations
      * @return array{timestamp: string, applied: array<int, string>, warnings: array<int, string>, errors: array<int, array{path: string, reason: string}>}
      */
-    public function execute(array $operations): array
+    /**
+     * Simulates all operations in memory (anchors, KaTeX guard, MOVE chains, and php -l)
+     * without modifying any project files or creating _📦 backups.
+     *
+     * @param array<int, array<string, mixed>> $operations
+     * @return array{dry_run: bool, timestamp: string, applied: array<int, string>, warnings: array<int, string>, errors: array<int, array{path: string, reason: string}>}
+     */
+    public function dryRun(array $operations): array
     {
-        $applied = [];
+        $planned = [];
         $warnings = [];
         $errors = [];
+        $dumpFiles = [];
+        $treeOutputs = [];
+        $virtualBuffers = [];
+        $virtualMoves = [];
 
         foreach ($operations as $op) {
             $opWarnings = PatcherKatexGuard::scanOperation($op);
@@ -38,6 +52,134 @@ final class PatcherEngine
             $relPath = (string) ($op['path'] ?? '');
 
             if ($type === 'MOVE') {
+                $dstRel = (string) ($op['dest'] ?? '');
+                $srcFull = $this->resolveSafePath($relPath);
+                $dstFull = $this->resolveSafePath($dstRel);
+                if ($srcFull === null || $dstFull === null) {
+                    $errors[] = ['path' => $relPath, 'reason' => 'Invalid or blocked path in MOVE.'];
+                    continue;
+                }
+                if (!file_exists($srcFull) && !isset($virtualBuffers[$srcFull])) {
+                    $errors[] = ['path' => $relPath, 'reason' => 'Source path does not exist for MOVE.'];
+                    continue;
+                }
+                if (file_exists($dstFull) && !isset($virtualMoves[$dstFull])) {
+                    $errors[] = ['path' => $relPath, 'reason' => "Destination already exists: {$dstRel}"];
+                    continue;
+                }
+                $virtualMoves[$dstFull] = $srcFull;
+                if (isset($virtualBuffers[$srcFull])) {
+                    $virtualBuffers[$dstFull] = $virtualBuffers[$srcFull];
+                }
+                $planned[] = "DRY-RUN MOVE: {$relPath} -> {$dstRel}";
+                continue;
+            }
+
+            if ($type === 'DUMP' || $type === 'TREE') {
+                $readRes = $this->collectInspection($type, $relPath, $dumpFiles, $treeOutputs);
+                if ($readRes['ok']) {
+                    $planned[] = $readRes['message'];
+                } else {
+                    $errors[] = ['path' => $relPath, 'reason' => $readRes['message']];
+                }
+                continue;
+            }
+
+            if ($type === 'DISABLE' || $type === 'DISCARD') {
+                $fullPath = $this->resolveSafePath($relPath);
+                if ($fullPath === null) {
+                    $errors[] = ['path' => $relPath, 'reason' => "Invalid or blocked path for {$type}."];
+                    continue;
+                }
+                if (!file_exists($fullPath) && !isset($virtualBuffers[$fullPath])) {
+                    $errors[] = ['path' => $relPath, 'reason' => "Target does not exist for {$type}."];
+                    continue;
+                }
+                $planned[] = "DRY-RUN {$type}: {$relPath}";
+                continue;
+            }
+
+            $fullPath = $this->resolveSafePath($relPath);
+            if ($fullPath === null) {
+                $errors[] = ['path' => $relPath, 'reason' => 'Invalid or blocked path.'];
+                continue;
+            }
+
+            $sourcePath = $virtualMoves[$fullPath] ?? $fullPath;
+            $hasVirtual = array_key_exists($fullPath, $virtualBuffers);
+            $existed = $hasVirtual || is_file($sourcePath);
+
+            if ($type === 'CREATE') {
+                $buffer = str_replace(["\r\n", "\r"], "\n", (string) ($op['content'] ?? ''));
+            } elseif ($type === 'PATCH') {
+                if (!$existed) {
+                    $errors[] = ['path' => $relPath, 'reason' => 'Target file does not exist for PATCH.'];
+                    continue;
+                }
+                $buffer = $hasVirtual
+                    ? $virtualBuffers[$fullPath]
+                    : str_replace(["\r\n", "\r"], "\n", (string) file_get_contents($sourcePath));
+
+                $hunkFailed = false;
+                foreach ($op['hunks'] as $idx => $hunk) {
+                    $patchRes = $this->applyHunk($buffer, $hunk['start'], $hunk['end'], $hunk['replace'], $idx + 1);
+                    if (!$patchRes['ok']) {
+                        $errors[] = ['path' => $relPath, 'reason' => $patchRes['message']];
+                        $hunkFailed = true;
+                        break;
+                    }
+                    $buffer = $patchRes['content'];
+                }
+                if ($hunkFailed) {
+                    continue;
+                }
+            } else {
+                continue;
+            }
+
+            if (str_ends_with(strtolower($fullPath), '.php') && $this->phpCli !== null) {
+                $lintErr = $this->lintPhpContent($buffer);
+                if ($lintErr !== null) {
+                    $errors[] = ['path' => $relPath, 'reason' => $lintErr];
+                    continue;
+                }
+            }
+
+            $virtualBuffers[$fullPath] = $buffer;
+            $tag = $existed ? 'DRY-RUN UPDATE' : 'DRY-RUN CREATE';
+            $planned[] = "{$tag}: {$relPath} (" . strlen($buffer) . ' bytes)';
+        }
+
+        return [
+            'dry_run'     => true,
+            'timestamp'   => $this->timestamp,
+            'applied'     => $planned,
+            'warnings'    => $warnings,
+            'errors'      => $errors,
+            'read_output' => $this->formatInspectionOutput($dumpFiles, $treeOutputs),
+        ];
+    }
+
+    public function execute(array $operations): array
+    {
+        $applied = [];
+        $warnings = [];
+        $errors = [];
+        $dumpFiles = [];
+        $treeOutputs = [];
+
+        foreach ($operations as $op) {
+            $opWarnings = PatcherKatexGuard::scanOperation($op);
+            if ($opWarnings !== []) {
+                $warnings = array_merge($warnings, $opWarnings);
+            }
+
+            $type = (string) ($op['type'] ?? '');
+            $relPath = (string) ($op['path'] ?? '');
+
+            if ($type === 'DUMP' || $type === 'TREE') {
+                $res = $this->collectInspection($type, $relPath, $dumpFiles, $treeOutputs);
+            } elseif ($type === 'MOVE') {
                 $res = $this->executeMove($relPath, (string) ($op['dest'] ?? ''));
             } elseif ($type === 'DISABLE') {
                 $res = $this->executePrefixRename($relPath, '_', 'DISABLED');
@@ -55,10 +197,11 @@ final class PatcherEngine
         }
 
         return [
-            'timestamp' => $this->timestamp,
-            'applied'   => $applied,
-            'warnings'  => $warnings,
-            'errors'    => $errors,
+            'timestamp'   => $this->timestamp,
+            'applied'     => $applied,
+            'warnings'    => $warnings,
+            'errors'      => $errors,
+            'read_output' => $this->formatInspectionOutput($dumpFiles, $treeOutputs),
         ];
     }
 
@@ -336,6 +479,143 @@ final class PatcherEngine
         }
     }
 
+    /**
+     * Collects read-only DUMP files or TREE listings without touching disk.
+     *
+     * @param array<int, string> $dumpFiles
+     * @param array<int, string> $treeOutputs
+     * @return array{ok: bool, message: string}
+     */
+    private function collectInspection(string $type, string $relPath, array &$dumpFiles, array &$treeOutputs): array
+    {
+        $bs = chr(92);
+        $trimmed = trim(str_replace($bs, '/', $relPath));
+        if ($trimmed === '.' || $trimmed === './' || $trimmed === '/') {
+            $clean = '';
+            $fullPath = $this->projectRoot;
+        } else {
+            $clean = trim($trimmed, '/');
+            $fullPath = $this->resolveSafePath($clean);
+        }
+
+        if ($fullPath === null || !file_exists($fullPath)) {
+            return ['ok' => false, 'message' => "Target does not exist for {$type}: {$relPath}"];
+        }
+
+        if ($type === 'TREE') {
+            $label = $clean === '' ? '.' : $clean;
+            $lines = ["// ========== DIRECTORY TREE ({$label}) =========="];
+            if (is_file($fullPath)) {
+                $lines[] = '└── ' . basename($fullPath);
+            } else {
+                $this->appendAsciiTree($fullPath, '', $lines);
+            }
+            $treeOutputs[] = implode("\n", $lines);
+            return ['ok' => true, 'message' => "TREE: {$label}"];
+        }
+
+        if (is_file($fullPath)) {
+            $dumpFiles[$clean] = $clean;
+            return ['ok' => true, 'message' => "DUMP: {$clean}"];
+        }
+
+        $countBefore = count($dumpFiles);
+        $this->collectDirFilesForDump($fullPath, $dumpFiles);
+        $added = count($dumpFiles) - $countBefore;
+        $label = $clean === '' ? '.' : $clean;
+        return ['ok' => true, 'message' => "DUMP DIR: {$label} ({$added} files)"];
+    }
+
+    /**
+     * @param array<string, string> $dumpFiles
+     */
+    private function collectDirFilesForDump(string $dirAbs, array &$dumpFiles): void
+    {
+        $entries = @scandir($dirAbs);
+        if (!is_array($entries)) {
+            return;
+        }
+        natcasesort($entries);
+        $bs = chr(92);
+        $baseLen = strlen($this->projectRoot) + 1;
+        $skipDirs = ['.git', 'node_modules', 'vendor', '_j0-temp'];
+
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            if (str_starts_with($entry, "_\u{1F4E6}") || str_starts_with($entry, "_\u{1F5D1}")) {
+                continue;
+            }
+            $full = $dirAbs . '/' . $entry;
+            if (is_link($full)) {
+                continue;
+            }
+            if (is_dir($full)) {
+                if (in_array($entry, $skipDirs, true)) {
+                    continue;
+                }
+                $this->collectDirFilesForDump($full, $dumpFiles);
+            } elseif (is_file($full)) {
+                $rel = substr(str_replace($bs, '/', $full), $baseLen);
+                $dumpFiles[$rel] = $rel;
+            }
+        }
+    }
+
+    /**
+     * @param array<int, string> $lines
+     */
+    private function appendAsciiTree(string $dirAbs, string $indent, array &$lines, int $depth = 0): void
+    {
+        if ($depth > 8) {
+            return;
+        }
+        $entries = @scandir($dirAbs);
+        if (!is_array($entries)) {
+            return;
+        }
+        $skipDirs = ['.git', 'node_modules', 'vendor', '_j0-temp'];
+        $filtered = [];
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..' || in_array($entry, $skipDirs, true)) {
+                continue;
+            }
+            $filtered[] = $entry;
+        }
+        natcasesort($filtered);
+        $filtered = array_values($filtered);
+        $total = count($filtered);
+
+        foreach ($filtered as $idx => $entry) {
+            $isLast = ($idx === $total - 1);
+            $branch = $isLast ? '└── ' : '├── ';
+            $full = $dirAbs . '/' . $entry;
+            $lines[] = $indent . $branch . $entry;
+            if (is_dir($full) && !is_link($full)) {
+                $nextIndent = $indent . ($isLast ? '    ' : '│   ');
+                $this->appendAsciiTree($full, $nextIndent, $lines, $depth + 1);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, string> $dumpFiles
+     * @param array<int, string> $treeOutputs
+     */
+    private function formatInspectionOutput(array $dumpFiles, array $treeOutputs): string
+    {
+        $chunks = [];
+        if ($treeOutputs !== []) {
+            $chunks[] = implode("\n\n", $treeOutputs);
+        }
+        if ($dumpFiles !== []) {
+            $binaryExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'ico', 'pdf', 'zip', 'gz', 'tar', 'woff', 'woff2', 'ttf', 'otf', 'eot', 'mp3', 'mp4', 'mov', 'sqlite', 'db'];
+            $chunks[] = DumperFormatter::buildDump($this->projectRoot, array_values($dumpFiles), $binaryExts, false);
+        }
+        return implode("\n\n", $chunks);
+    }
+
     private function resolveSafePath(string $relPath): ?string
     {
         $bs = chr(92);
@@ -361,6 +641,25 @@ final class PatcherEngine
             return "{$dir}/{$prefix}{$info['filename']}_{$this->timestamp}{$ext}";
         }
         return $candidate;
+    }
+
+    private function lintPhpContent(string $code): ?string
+    {
+        if ($this->phpCli === null) {
+            return null;
+        }
+        $tmpFile = rtrim(sys_get_temp_dir(), '/\\') . '/ai0_dryrun_' . uniqid('', true) . '.php';
+        if (@file_put_contents($tmpFile, $code) === false) {
+            return null;
+        }
+        $lintOut = [];
+        $lintCode = 0;
+        exec(escapeshellarg($this->phpCli) . ' -l ' . escapeshellarg($tmpFile) . ' 2>&1', $lintOut, $lintCode);
+        @unlink($tmpFile);
+        if ($lintCode !== 0) {
+            return 'PHP syntax error: ' . implode(' ', $lintOut);
+        }
+        return null;
     }
 
     private function resolvePhpCli(): ?string

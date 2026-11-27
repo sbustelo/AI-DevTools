@@ -1,39 +1,72 @@
 {
     "categories": {
+        "disabled": {
+            "label": "Disabled (_*)",
+            "prefix_state": "disabled",
+            "default_excluded": true
+        },
         "discard": {
             "label": "Discarded (_🗑️ / __)",
             "prefix_state": "discard",
             "default_excluded": true
         },
         "backup": {
-            "label": "Backups & Archives (_📦)",
+            "label": "Backups (_📦)",
             "prefix_state": "backup",
             "default_excluded": true
         },
-        "disabled": {
-            "label": "Disabled / System (_)",
-            "prefix_state": "disabled",
-            "default_excluded": true
-        },
-        "vendors": {
-            "label": "Dependencies (vendor / node_modules)",
-            "pattern": "/^(vendor|node_modules)$/i",
-            "default_excluded": true
-        },
-        "dotfiles": {
-            "label": "Hidden / Git (.git / .*)",
+        "hidden_dot": {
+            "label": "Hidden / Dotfiles (.* / .git)",
             "pattern": "/^\\./",
+            "default_excluded": true
+        },
+        "vendor_deps": {
+            "label": "Dependencies (node_modules / vendor)",
+            "pattern": "/^(node_modules|vendor)$/i",
             "default_excluded": true
         },
         "build_cache": {
             "label": "Build / Logs / Cache (dist / logs / tmp)",
             "pattern": "/^(dist|build|logs|cache|tmp)$/i",
             "default_excluded": true
+        },
+        "j0_compiled": {
+            "label": "j0 Compiled Bundles (.js / .css)",
+            "j0_artifact": "compiled",
+            "default_excluded": true
+        },
+        "j0_minified": {
+            "label": "j0 Minified Bundles (.min.js / .min.css)",
+            "j0_artifact": "minified",
+            "default_excluded": true
         }
     },
+    "j0_pragmas": {
+        "compiled": [
+            "/*! j0 compiled",
+            "/*! j0 c*/"
+        ],
+        "minified": [
+            "/*! j0 minified",
+            "/*! j0 m*/"
+        ]
+    },
     "binary_extensions": [
-        "png", "jpg", "jpeg", "gif", "webp", "avif", "ico", "psd", "ai",
-        "mp4", "webm", "mov", "mp3", "wav", "pdf", "zip", "tar", "gz",
-        "sqlite", "db", "woff", "woff2", "ttf", "otf", "eot", "app", "scpt"
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "webp",
+        "svg",
+        "ico",
+        "pdf",
+        "zip",
+        "tar",
+        "gz",
+        "sqlite",
+        "db",
+        "woff",
+        "woff2",
+        "ttf"
     ]
 }

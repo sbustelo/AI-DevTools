@@ -4,48 +4,46 @@
 
 `AI-DevTools` houses two synergistic systems designed around **zero external dependencies**, **filesystem sovereignty**, and **progressive composition**:
 
-1. **`j0 v2` (Modular Runtime & Build Primitives):** Organized by **system layer** (`core/`, `tooling/`, `src/`). Any external project can cherry-pick a single file (such as `01-j0kernel.js` or `j0-build.php`) without adopting the full stack, or assemble all three layers into a complete Web OS.
-2. **`ai0` (Local AI Development Suite):** A drop-in developer control plane (`dumper`, `patcher`, `restore`, `purge`) built on top of `j0/core/` and `j0/tooling/`.
+1. **`j0 v2` (Modular Runtime & Build Primitives):** Organized into pure PHP `core/` and OS-layered `src/`. Any external project can cherry-pick a single file (such as `j0010-kernel.js` or `p0040-build.php`) without adopting the full stack, or compose all layers into a complete Web OS.
+2. **`ai0` (Local AI Development Suite):** A drop-in developer control plane (`dumper`, `patcher`, `restore`, `purge`, `i18n-batch`) built on top of `j0/core/` and `j0/src/`.
 
 ---
 
-## 2. Three-Layer Topology of `j0 v2` (`ai0/j0/`)
+## 2. Two-Layer Topology of `j0 v2` (`ai0/j0/`)
 
 ```text
 ai0/j0/
 ├── api.php                     # Public boundary facade: j0_api()
-├── j0-locate.php               # Union Mount locator, .j0route.php cache, S() & T() primitives
-├── core/                       # Layer 0: BIOS & Micro-Kernel (indispensable boot & bus primitives)
-│   ├── 01-j0kernel.js          # EventChannel + j0.bus + j0.registry + passive j0.logger (globalThis)
+├── core/                       # Pure PHP bootstrap, locator, config, prefix, scan, and domain loader
 │   ├── j0-closest.php          # Lexical upward directory traverser (symlink-safe)
 │   ├── j0-config.php           # 4-tier [_]ai0config / [_]j0config resolver (.php secrets + .json rules)
+│   ├── j0-locate.php           # Union Mount locator, .j0route.php cache, S() & T() primitives
 │   ├── j0-prefix.php           # Semantic leading-underscore classifier (_, __, _🗑️, _📦)
 │   ├── j0-scan.php             # Natural recursive scanner + SHA-1 tree signature
 │   └── j0-use.php              # Filesystem-derived domain & asset loader
-├── tooling/                    # Layer 1: System Utilities (IO, bundling, minification, SSR cache)
-│   ├── j0-backup.php           # Timestamped _📦 backup rotator
-│   ├── j0-concat.php           # In-memory LF-normalized concatenator
-│   ├── j0-minify.php           # Local/remote CSS & JS minifier preserving /*! ... */ banners
-│   ├── j0-save.php             # MD5-checked atomic disk writer
-│   ├── j0-build.php            # Bundle pipeline orchestrator (scan -> concat -> save -> minify)
-│   ├── j0-bundles.php          # Multi-bundle root discovery and compilation
-│   ├── j0-asset-tags.php       # Smart <link>/<script> emitter (compiled .min vs. DEBUG files)
-│   └── j0-static-html.php      # PHP-to-HTML dependency-tracked static cache
-├── src/                        # Layer 2: OS-Layered Polyglot Modules (0000..0999)
+├── src/                        # OS-Layered Polyglot Modules (0000..0999)
+│   ├── 0010-kernel/            # BIOS JS: j0010-kernel.js (EventChannel + bus + registry + logger)
 │   ├── 0100-vfs/               # Base OS: local-first KV, SSR cookie sync, IndexedDB blobs & docs
 │   ├── 0100-vfs--remote/       # Capability extension (--remote): j0auth + cloud hybrid-sync
-│   └── 0500-ui-patterns/       # UI OS: declarative DOM delegation engines (emitter..dragger)
+│   ├── 0110-i18n/              # Base OS: isomorphic PHP/JS L(), M(), j0_get_userlang(), M_dump()
+│   ├── 0120-assets/            # Base OS: p0010-asset-tags.php (orphan .min survival + DEBUG tags)
+│   ├── 0130-cache/             # Base OS: p0010-static-html.php (dependency-tracked HTML cache)
+│   ├── 0180-fs-io/             # Base OS: p0010-backup.php (_📦 rotation) & p0020-save.php (atomic write)
+│   ├── 0190-bundler/           # Base OS: concat, local-hook minify, bundle discovery & build pipeline
+│   ├── 0500-ui-patterns/       # UI OS: declarative DOM delegation engines (emitter..floater)
+│   ├── 0510-ui-menus/          # UI OS: body-ported dropdowns & safe-zone submenus
+│   └── 0520-ui-windows/        # UI OS: fractal j0-pane/j0-region layout, 3D Flip windows & sheets
 ├── quickstart/                 # Copyable Layer 0 j0_boot() bootstrap templates
 └── examples/                   # Standalone PHP and project-bootstrap reference implementations
 ```
 
 ### Layer 0 — `j0/core/` (The BIOS / Micro-Kernel)
-- **Unified JS Kernel (`01-j0kernel.js`):** Combines `EventChannel`, `globalThis.j0.bus` (with optional `globalThis.j0.QA` contract validation), `globalThis.j0.registry` (`register` / `get` / `has`), and a passive `globalThis.j0.logger` (bounded circular buffer + `j0:log` bus event, with zero boot timeouts so standalone libraries never trigger false console errors).
+- **Unified JS Kernel (`0010-kernel/j0010-kernel.js`):** Combines `EventChannel`, `globalThis.j0.bus` (with optional `globalThis.j0.QA` contract validation), `globalThis.j0.registry` (`register` / `get` / `has`), and a passive `globalThis.j0.logger` (bounded circular buffer + `j0:log` bus event, with zero boot timeouts so standalone libraries never trigger false console errors).
 - **Stateless PHP Foundation (`j0-closest`, `j0-config`, `j0-prefix`, `j0-scan`, `j0-use`):** Pure functions accepting explicit paths and returning structured arrays without global mutable state.
 
-### Layer 1 — `j0/tooling/` & `j0-locate.php` (System Utilities & Location-Independent Primitives)
-- Follows Unix pipeline composition: `j0-build.php` orchestrates `j0-scan.php` -> `j0-concat.php` -> `j0-save.php` (`j0-backup.php`) -> `j0-minify.php`.
-- `j0-asset-tags.php` compiles bundles on demand when source SHA-1 signatures (`path|mtime|size`) change and propagates dependencies automatically to `j0-static-html.php`.
+### Layer 1 — Base OS Modules (`0120-assets`, `0130-cache`, `0180-fs-io`, `0190-bundler`) & `j0-locate.php`
+- Follows Unix pipeline composition: `0190-bundler/p0040-build.php` orchestrates `j0-scan.php` -> `p0010-concat.php` -> `0180-fs-io/p0020-save.php` (`p0010-backup.php`) -> `p0020-minify.php`.
+- `0120-assets/p0010-asset-tags.php` compiles bundles on demand when source SHA-1 signatures (`path|mtime|size`) change and propagates dependencies automatically to `0130-cache/p0010-static-html.php`.
 - `j0-locate.php` indexes `[host mounted dirs] -> project/src -> j0/src` with project-over-system shadowing and caches resolutions in `.j0route.php` (OPcache `O(1)`), feeding `S(id)` (URLs/paths) and `T(id, vars)` (rendered templates/SVG/JSON).
 
 ### Layer 2 — `j0/src/` (OS-Inspired Load Zones & Vertical Modules)
@@ -82,10 +80,11 @@ Every tool under `ai0/tools/*/` exposes an `index.php` entrypoint and supports t
 
 | Tool / Target | Portable Stub | Responsibility |
 | :--- | :--- | :--- |
-| `tools/dumper/` | `ai0dump.php` | Interactive checkbox tree, **Show excluded only** filter, regex exclusion categories from `dumper-categories.json`, binary summaries, and context dump generator. |
-| `tools/patcher/` | `ai0patch.php` | Atomic applier for `CREATE`, `PATCH` (`1-Line First`), `MOVE`, `DISABLE` (`_`), and `DISCARD` (`_🗑️`), creating `_📦` backups on overwrite and running `php -l`. |
+| `tools/files/` | `ai0dump.php` | Unified full-viewport explorer (`View` inspector, `Dump` context generator, `Purge`, `Restore`), custom `.ai0root.json` icons & cascading folder colors, modular context menu (`ai0src/actions/`), and live search. |
+| `tools/patcher/` | `ai0patch.php` | Atomic applier for `CREATE`, `PATCH` (`1-Line First`), `MOVE`, `DISABLE` (`_`), `DISCARD` (`_🗑️`), `DUMP`, and `TREE`, with `=== ROOT: ===` mismatch guard, `_📦` backups, Dry-Run, and `php -l`. |
 | `tools/restore/` | `ai0restore.php` | Scans `_📦<name>_<ISO-TS>.<ext>` files, groups them into timestamped batches, and restores previous versions in one click. |
 | `tools/purge/` | `ai0purge.php` | Reclaims disk space by preselecting `discard` (`_🗑️`, `__`) and `backup` (`_📦`) items while keeping human `disabled` (`_*`) items unchecked by default. |
-| `j0/tooling/j0-build.php` | `ai0build.php` | Compiles local modular CSS and JS bundles (`.ext` + `.min.ext`) inside any target directory via `j0_build_bundle()`. |
+| `tools/i18n-batch/` | *(DevTools hub)* | Compares unit `i18n/{lang}.json` or `M_dump()` catalogs by `source_hash`, validates `{placeholder}` integrity, and emits minimal AI delta prompts. |
+| `j0/src/0190-bundler/p0040-build.php` | `ai0build.php` | Compiles local modular CSS and JS bundles (`.ext` + `.min.ext`) inside any target directory via `j0_build_bundle()`. |
 
 *(UI note: `ai0/ui/` compiles its modular CSS/JS bundles into `<PROJECT_ROOT>/_j0-temp/ai0-ui/`, runs `<j0-theme-switch>` on `j0.vfs` SSR/client persistence with semantic CSS tokens, and will converge onto `IPAX-UI` once the minimal `IPAX-UI` core is finalized).*

@@ -1,4 +1,4 @@
-/* PATH: ai0-003/ui/modules/0030-category-panel--ui-widget/c0030-category-panel.css */
+/* PATH: ai0/ui/modules/0030-category-panel--ui-widget/c0030-category-panel.css */
 .j0ui-cat-list {
     list-style: none;
     margin: 0;
@@ -14,9 +14,9 @@
     align-items: flex-start;
     gap: 8px;
     padding: 8px 10px;
-    border: 1px solid var(--j0ui-border-subtle);
-    border-radius: var(--j0ui-radius-sm);
-    background: var(--j0ui-bg-panel);
+    border: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    border-radius: var(--ipax-0-radius-sm);
+    background: var(--ipax-surface-tint);
 }
 
 .j0ui-cat-main {
@@ -34,7 +34,7 @@
 
 .j0ui-cat-pattern {
     display: block;
-    font-family: var(--j0ui-font-mono);
+    font-family: var(--ipax-font-mono);
     font-size: 11px;
-    color: var(--j0ui-text-muted);
+    color: var(--ipax-text-muted);
 }

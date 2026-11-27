@@ -1,0 +1,186 @@
+/* PATH: j0/src/0500-ipax/c0100-ipax-engine.css */
+/* IPAX 2 Engine — Polarity (Level 1), Role Resolution (Level 2), Contexts (this-*), and .use-deep */
+
+/* ─── LEVEL 1: Light / Dark polarity (space-separated tokens via ~=, e.g. "light dark-knight") ─── */
+:root,
+[data-ipax-theme~="light"] {
+    color-scheme: light;
+    --ipax-1-paper-x: var(--ipax-0-paper-x);
+    --ipax-1-paper: var(--ipax-0-paper);
+    --ipax-1-accent-p: var(--ipax-0-accent-p);
+    --ipax-1-accent: var(--ipax-0-accent);
+    --ipax-1-accent-i: var(--ipax-0-accent-i);
+    --ipax-1-ink: var(--ipax-0-ink);
+    --ipax-1-ink-x: var(--ipax-0-ink-x);
+    --ipax-1-muted-pct: var(--ipax-0-muted-pct);
+    --ipax-1-muted-p: var(--ipax-0-muted-p);
+    --ipax-1-muted-i: var(--ipax-0-muted-i);
+
+    --ipax-1-link-p: var(--ipax-0-link-p, var(--ipax-0-accent-p));
+    --ipax-1-link-i: var(--ipax-0-link-i, var(--ipax-0-accent-i));
+    --ipax-1-visited-p: var(--ipax-0-visited-p);
+    --ipax-1-visited-i: var(--ipax-0-visited-i);
+}
+
+[data-ipax-theme~="dark"] {
+    color-scheme: dark;
+    --ipax-1-paper-x: var(--ipax-0-ink-x);
+    --ipax-1-paper: var(--ipax-0-ink);
+    --ipax-1-accent-p: var(--ipax-0-accent-i);
+    --ipax-1-accent: var(--ipax-0-accent);
+    --ipax-1-accent-i: var(--ipax-0-accent-p);
+    --ipax-1-ink: var(--ipax-0-paper);
+    --ipax-1-ink-x: var(--ipax-0-paper-x);
+    --ipax-1-muted-pct: var(--ipax-0-muted-pct);
+    --ipax-1-muted-p: var(--ipax-0-muted-i);
+    --ipax-1-muted-i: var(--ipax-0-muted-p);
+
+    --ipax-1-link-p: var(--ipax-0-link-i, var(--ipax-0-accent-i));
+    --ipax-1-link-i: var(--ipax-0-link-p, var(--ipax-0-accent-p));
+    --ipax-1-visited-p: var(--ipax-0-visited-i);
+    --ipax-1-visited-i: var(--ipax-0-visited-p);
+}
+
+/* ─── LEVEL 1: Mode invariants & derived font weights ─── */
+:root {
+    --ipax-1-on-accent: var(--ipax-0-paper-x);
+
+    --ipax-1-weight-thin: clamp(1, calc(var(--ipax-0-weight-normal) - 3 * var(--ipax-0-weight-step)), 1000);
+    --ipax-1-weight-extralight: clamp(1, calc(var(--ipax-0-weight-normal) - 2 * var(--ipax-0-weight-step)), 1000);
+    --ipax-1-weight-light: clamp(1, calc(var(--ipax-0-weight-normal) - 1 * var(--ipax-0-weight-step)), 1000);
+    --ipax-1-weight-normal: var(--ipax-0-weight-normal);
+    --ipax-1-weight-medium: clamp(1, calc(var(--ipax-0-weight-normal) + 1 * var(--ipax-0-weight-step)), 1000);
+    --ipax-1-weight-semibold: clamp(1, calc(var(--ipax-0-weight-normal) + 2 * var(--ipax-0-weight-step)), 1000);
+    --ipax-1-weight-bold: clamp(1, calc(var(--ipax-0-weight-normal) + 3 * var(--ipax-0-weight-step)), 1000);
+    --ipax-1-weight-extrabold: clamp(1, calc(var(--ipax-0-weight-normal) + 4 * var(--ipax-0-weight-step)), 1000);
+    --ipax-1-weight-black: clamp(1, calc(var(--ipax-0-weight-normal) + 5 * var(--ipax-0-weight-step)), 1000);
+}
+
+/* ─── LEVEL 2: Role resolution ─── */
+:root,
+[data-ipax-theme] {
+    --ipax-2-accent-p: var(--ipax-1-accent-p);
+    --ipax-2-accent-i: var(--ipax-1-accent-i);
+    --ipax-2-paper: var(--ipax-1-paper);
+    --ipax-2-paper-x: var(--ipax-1-paper-x);
+    --ipax-2-ink: var(--ipax-1-ink);
+    --ipax-2-ink-x: var(--ipax-1-ink-x);
+}
+
+/* ─── THIS-*: Default context (ink-on-paper) ─── */
+:root,
+[data-ipax-theme] {
+    --ipax-this-paper: var(--ipax-2-paper);
+    --ipax-this-ink: var(--ipax-2-ink);
+    --ipax-this-accent: var(--ipax-2-accent-i);
+}
+
+/* ─── CONTEXTS ─── */
+.ink-on-paper {
+    --ipax-this-paper: var(--ipax-2-paper);
+    --ipax-this-ink: var(--ipax-2-ink);
+    --ipax-this-accent: var(--ipax-2-accent-i);
+}
+.paper-on-ink {
+    --ipax-this-paper: var(--ipax-2-ink);
+    --ipax-this-ink: var(--ipax-2-paper);
+    --ipax-this-accent: var(--ipax-2-accent-p);
+}
+.accent-on-paper {
+    --ipax-this-paper: var(--ipax-2-paper);
+    --ipax-this-ink: var(--ipax-2-accent-i);
+    --ipax-this-accent: var(--ipax-2-ink);
+}
+.paper-on-accent {
+    --ipax-this-paper: var(--ipax-2-accent-i);
+    --ipax-this-ink: var(--ipax-2-paper);
+    --ipax-this-accent: var(--ipax-2-paper);
+}
+.accent-on-ink {
+    --ipax-this-paper: var(--ipax-2-ink);
+    --ipax-this-ink: var(--ipax-2-accent-p);
+    --ipax-this-accent: var(--ipax-2-paper);
+}
+.ink-on-accent {
+    --ipax-this-paper: var(--ipax-2-accent-p);
+    --ipax-this-ink: var(--ipax-2-ink);
+    --ipax-this-accent: var(--ipax-2-ink);
+}
+
+/* ─── USE-DEEP ─── */
+.ink-on-paper.use-deep,
+.accent-on-paper.use-deep {
+    --ipax-this-paper: color-mix(in srgb, var(--ipax-2-paper) var(--ipax-0-deep-pct), var(--ipax-2-paper-x));
+}
+.paper-on-ink.use-deep,
+.accent-on-ink.use-deep {
+    --ipax-this-paper: color-mix(in srgb, var(--ipax-2-ink) var(--ipax-0-deep-pct), var(--ipax-2-ink-x));
+}
+.paper-on-accent.use-deep {
+    --ipax-this-paper: color-mix(in srgb, var(--ipax-2-accent-i) var(--ipax-0-deep-pct), var(--ipax-2-ink-x));
+}
+.ink-on-accent.use-deep {
+    --ipax-this-paper: color-mix(in srgb, var(--ipax-2-accent-p) var(--ipax-0-deep-pct), var(--ipax-2-paper-x));
+}
+
+.ink-on-paper.use-deep,
+.ink-on-accent.use-deep {
+    --ipax-this-ink: var(--ipax-2-ink-x);
+}
+.paper-on-ink.use-deep,
+.paper-on-accent.use-deep {
+    --ipax-this-ink: var(--ipax-2-paper-x);
+}
+.accent-on-paper.use-deep,
+.ink-on-accent.use-deep {
+    --ipax-this-accent: var(--ipax-2-ink-x);
+}
+.accent-on-ink.use-deep,
+.paper-on-accent.use-deep {
+    --ipax-this-accent: var(--ipax-2-paper-x);
+}
+
+/* ─── DERIVED SURFACE, LINE, MUTED & LINKS ─── */
+:root,
+[data-ipax-theme],
+.ink-on-paper,
+.accent-on-paper,
+.ink-on-accent {
+    --ipax-text-muted: var(--ipax-1-muted-i, color-mix(in srgb, var(--ipax-this-ink) var(--ipax-1-muted-pct), transparent));
+    --ipax-border-line: color-mix(in srgb, var(--ipax-this-ink) var(--ipax-0-line-pct), transparent);
+    --ipax-surface-tint: color-mix(in srgb, var(--ipax-this-ink) var(--ipax-0-tint-pct), var(--ipax-this-paper));
+}
+.paper-on-ink,
+.accent-on-ink,
+.paper-on-accent {
+    --ipax-text-muted: var(--ipax-1-muted-p, color-mix(in srgb, var(--ipax-this-ink) var(--ipax-1-muted-pct), transparent));
+    --ipax-border-line: color-mix(in srgb, var(--ipax-this-ink) var(--ipax-0-line-pct), transparent);
+    --ipax-surface-tint: color-mix(in srgb, var(--ipax-this-ink) var(--ipax-0-tint-pct), var(--ipax-this-paper));
+}
+
+:root,
+[data-ipax-theme],
+.ink-on-paper,
+.accent-on-paper {
+    --ipax-this-link: var(--ipax-1-link-i);
+    --ipax-this-link-visited: var(--ipax-1-visited-i, color-mix(in srgb, var(--ipax-1-link-i) var(--ipax-1-muted-pct), var(--ipax-this-paper)));
+}
+.paper-on-ink,
+.accent-on-ink {
+    --ipax-this-link: var(--ipax-1-link-p);
+    --ipax-this-link-visited: var(--ipax-1-visited-p, color-mix(in srgb, var(--ipax-1-link-p) var(--ipax-1-muted-pct), var(--ipax-this-paper)));
+}
+.paper-on-accent,
+.ink-on-accent {
+    --ipax-this-link: var(--ipax-this-ink);
+}
+
+.ink-on-paper,
+.paper-on-ink,
+.accent-on-paper,
+.paper-on-accent,
+.accent-on-ink,
+.ink-on-accent {
+    background-color: var(--ipax-this-paper);
+    color: var(--ipax-this-ink);
+}

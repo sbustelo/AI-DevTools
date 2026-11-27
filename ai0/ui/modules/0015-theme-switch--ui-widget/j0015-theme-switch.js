@@ -6,7 +6,8 @@
     const DEFAULT_THEME = 'dark';
 
     function normalizeTheme(value) {
-        return value === 'light' ? 'light' : 'dark';
+        const firstToken = String(value || '').trim().split(/\s+/)[0];
+        return firstToken === 'light' ? 'light' : 'dark';
     }
 
     function syncSwitchAria(theme) {
@@ -18,7 +19,7 @@
 
     function applyTheme(rawTheme, persist) {
         const theme = normalizeTheme(rawTheme);
-        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-ipax-theme', theme);
         syncSwitchAria(theme);
 
         if (persist && globalThis.j0 && globalThis.j0.vfs) {
@@ -38,15 +39,15 @@
         });
 
         const storedTheme = globalThis.j0.vfs.get(STORAGE_KEY, null);
-        const domTheme = document.documentElement.getAttribute('data-theme') || DEFAULT_THEME;
+        const domTheme = document.documentElement.getAttribute('data-ipax-theme') || DEFAULT_THEME;
         applyTheme(storedTheme !== null ? storedTheme : domTheme, false);
     } else {
-        applyTheme(document.documentElement.getAttribute('data-theme') || DEFAULT_THEME, false);
+        applyTheme(document.documentElement.getAttribute('data-ipax-theme') || DEFAULT_THEME, false);
     }
 
     if (globalThis.j0 && globalThis.j0.bus) {
         globalThis.j0.bus.on('ui:toggle-theme', function () {
-            const current = normalizeTheme(document.documentElement.getAttribute('data-theme') || DEFAULT_THEME);
+            const current = normalizeTheme(document.documentElement.getAttribute('data-ipax-theme') || DEFAULT_THEME);
             const next = current === 'dark' ? 'light' : 'dark';
             applyTheme(next, true);
         });

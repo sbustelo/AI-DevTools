@@ -1,0 +1,9 @@
+{
+    "id": "open_in_editor",
+    "label": {
+        "en": "Open in Editor",
+        "es": "Abrir en Editor"
+    },
+    "icon": "📝",
+    "applies_to": ["file", "dir"]
+}

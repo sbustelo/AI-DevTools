@@ -1,0 +1,9 @@
+{
+    "id": "open_in_finder",
+    "label": {
+        "en": "Reveal in Finder",
+        "es": "Mostrar en Finder"
+    },
+    "icon": "finder.svg",
+    "applies_to": ["file", "dir"]
+}

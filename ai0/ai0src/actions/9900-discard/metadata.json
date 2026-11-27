@@ -1,0 +1,14 @@
+{
+    "id": "discard",
+    "label": {
+        "en": "Discard",
+        "es": "Descartar"
+    },
+    "icon": "🗑️",
+    "danger": true,
+    "applies_to": ["file", "dir"],
+    "confirm": {
+        "en": "Mark item as discarded (_🗑️)?",
+        "es": "¿Marcar elemento como descartado (_🗑️)?"
+    }
+}

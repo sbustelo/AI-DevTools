@@ -1,0 +1,13 @@
+{
+    "id": "rename",
+    "label": {
+        "en": "Rename",
+        "es": "Renombrar"
+    },
+    "icon": "✏️",
+    "applies_to": ["file", "dir"],
+    "prompt": {
+        "en": "New name:",
+        "es": "Nuevo nombre:"
+    }
+}

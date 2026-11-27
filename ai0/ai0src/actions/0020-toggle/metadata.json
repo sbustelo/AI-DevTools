@@ -1,0 +1,9 @@
+{
+    "id": "toggle_disable",
+    "label": {
+        "en": "Toggle _",
+        "es": "Alternar _"
+    },
+    "icon": "🫥",
+    "applies_to": ["file", "dir"]
+}

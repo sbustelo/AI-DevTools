@@ -9,8 +9,8 @@ if (!defined('J0_EXEC')) {
 $stubConfig = [
     'repo_url'   => 'https://github.com/sbustelo/AI-DevTools',
     'on_missing' => 'strict',
-    'cache_key'  => '__ai0_purge__',
-    'targets'    => ['_ai0/tools/purge/index.php', 'ai0/tools/purge/index.php'],
+    'cache_key'  => '__ai0_files__',
+    'targets'    => ['_ai0/tools/files/index.php', 'ai0/tools/files/index.php'],
 ];
 
 (static function (string $startDir, array $cfg): void {
@@ -39,6 +39,7 @@ $stubConfig = [
                     'up_rel'     => $depth === 0 ? '' : str_repeat('../', $depth),
                     'down_rel'   => $sub,
                 ];
+                $_GET['tab'] = 'purge';
                 require $cached;
                 return;
             }
@@ -77,6 +78,7 @@ $stubConfig = [
                     'up_rel'     => $level === 0 ? '' : str_repeat('../', $level),
                     'down_rel'   => $down === [] ? '' : implode('/', array_reverse($down)),
                 ];
+                $_GET['tab'] = 'purge';
                 require $candidate;
                 return;
             }

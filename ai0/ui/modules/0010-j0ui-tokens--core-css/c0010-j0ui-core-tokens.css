@@ -1,40 +1,102 @@
-/* PATH: ai0-003/ui/modules/0010-j0ui-tokens--core-css/c0010-j0ui-core-tokens.css */
+/* PATH: ai0/ui/modules/0010-j0ui-tokens--core-css/c0010-j0ui-core-tokens.css */
 :root {
-    --j0ui-core-bg-surface: #14171d;
-    --j0ui-core-bg-field: #0d0f13;
-    --j0ui-core-border: #282d38;
-    --j0ui-core-text-main: #e6e9ef;
-    --j0ui-core-text-muted: #8b93a7;
-    --j0ui-core-accent: #3b82f6;
-    --j0ui-core-radius: 6px;
+    /* ai0 Product Palette — IPAX 2 Level 0 */
+    --ipax-0-paper-x: #FFFFFF;
+    --ipax-0-paper: #F0F0F0;
+    --ipax-0-accent-p: #70b3f7;
+    --ipax-0-accent: #005ED0;
+    --ipax-0-accent-i: #20486e;
+    --ipax-0-ink: #000000;
+    --ipax-0-ink-x: #000000;
+    --ipax-0-muted-pct: 70%;
 
-    --j0ui-bg-app: var(--j0ui-core-bg-field);
-    --j0ui-bg-window: var(--j0ui-core-bg-surface);
-    --j0ui-bg-panel: #1a1e26;
-    --j0ui-bg-hover: #212631;
-    --j0ui-border-subtle: var(--j0ui-core-border);
-    --j0ui-text-main: var(--j0ui-core-text-main);
-    --j0ui-text-muted: var(--j0ui-core-text-muted);
-    --j0ui-accent: var(--j0ui-core-accent);
-    --j0ui-text-on-accent: #ffffff;
-    --j0ui-danger: #ef4444;
-    --j0ui-success: #10b981;
-    --j0ui-warning: #f59e0b;
-    --j0ui-radius: var(--j0ui-core-radius);
-    --j0ui-radius-sm: 4px;
-    --j0ui-space-sm: 8px;
-    --j0ui-space-md: 16px;
-    --j0ui-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-    --j0ui-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    /* Semantic aliases mapped from IPAX 2 (never using paper-x for full surfaces) */
+    --j0ui-core-bg-surface: var(--ipax-this-paper);
+    --j0ui-core-bg-field: var(--ipax-surface-tint);
+    --j0ui-core-border: var(--ipax-border-line);
+    --j0ui-core-text-main: var(--ipax-this-ink);
+    --j0ui-core-text-muted: var(--ipax-text-muted);
+    --j0ui-core-accent: var(--ipax-1-accent);
+    --j0ui-core-radius: var(--ipax-0-radius-md);
+
+    --j0ui-bg-app: var(--ipax-this-paper);
+    --j0ui-bg-window: color-mix(in srgb, var(--ipax-this-paper) 88%, var(--ipax-2-paper-x));
+    --j0ui-bg-panel: var(--ipax-surface-tint);
+    --j0ui-bg-hover: color-mix(in srgb, var(--ipax-this-ink) 5%, var(--ipax-this-paper));
+    --j0ui-border-subtle: var(--ipax-border-line);
+    --j0ui-text-main: var(--ipax-this-ink);
+    --j0ui-text-muted: var(--ipax-text-muted);
+    --j0ui-accent: var(--ipax-1-accent);
+    --j0ui-text-on-accent: var(--ipax-1-on-accent);
+    --j0ui-danger: var(--ipax-0-danger);
+    --j0ui-success: var(--ipax-0-success);
+    --j0ui-warning: var(--ipax-0-warning);
+    --j0ui-radius: var(--ipax-0-radius-md);
+    --j0ui-radius-sm: var(--ipax-0-radius-sm);
+    --j0ui-space-sm: var(--ipax-0-space-sm);
+    --j0ui-space-md: var(--ipax-0-space-md);
+    --j0ui-font-sans: var(--ipax-font-ui);
+    --j0ui-font-mono: var(--ipax-font-mono);
+
+    --j0ui-z-sticky: var(--ipax-z-sticky);
+    --j0ui-z-modal: var(--ipax-z-modal);
+    --j0ui-z-menu: var(--ipax-z-menu);
+    --j0ui-z-safezone: var(--ipax-z-safezone);
+    --j0ui-z-submenu: var(--ipax-z-submenu);
+    --j0ui-z-dropdown: var(--ipax-z-dropdown);
+
+    --submenu-hover-area: transparent;
+
+    /* Finder-style folder label palette (ai0 product tokens) */
+    --fslabel-red-i: #d93025;
+    --fslabel-red-p: #ff6b6b;
+    --fslabel-orange-i: #e8710a;
+    --fslabel-orange-p: #ff9f43;
+    --fslabel-yellow-i: #d4a017;
+    --fslabel-yellow-p: #feca57;
+    --fslabel-green-i: #1e8e3e;
+    --fslabel-green-p: #2ecc71;
+    --fslabel-blue-i: #1a73e8;
+    --fslabel-blue-p: #54a0ff;
+    --fslabel-violet-i: #9334e6;
+    --fslabel-violet-p: #b980ff;
+    --fslabel-brown-i: #8d5524;
+    --fslabel-brown-p: #c88a55;
+    --fslabel-black-i: #757575;
+    --fslabel-black-p: #9ea7b8;
+
+    --fslabel-red: var(--fslabel-red-p);
+    --fslabel-orange: var(--fslabel-orange-p);
+    --fslabel-yellow: var(--fslabel-yellow-p);
+    --fslabel-green: var(--fslabel-green-p);
+    --fslabel-blue: var(--fslabel-blue-p);
+    --fslabel-violet: var(--fslabel-violet-p);
+    --fslabel-brown: var(--fslabel-brown-p);
+    --fslabel-black: var(--fslabel-black-p);
+
+    --fslabel-row-tint: 34%;
+    --fslabel-child-tint: 16%;
 }
 
-html[data-theme="light"] {
-    --j0ui-core-bg-surface: #ffffff;
-    --j0ui-core-bg-field: #f3f4f6;
-    --j0ui-core-border: #d1d5db;
-    --j0ui-core-text-main: #111827;
-    --j0ui-core-text-muted: #6b7280;
-    --j0ui-core-accent: #2563eb;
-    --j0ui-bg-panel: #f9fafb;
-    --j0ui-bg-hover: #e5e7eb;
+/* ai0 Dark Mode — IPAX 2 Level 1 overrides (warm neutral paper & brown accents, anti-halation) */
+html[data-ipax-theme~="dark"] {
+    --ipax-1-paper: #302E29;
+    --ipax-1-accent-p: #56421d;
+    --ipax-1-accent: #754109;
+    --ipax-1-accent-i: #f0d2a3;
+    --ipax-0-shadow-pct: 48%;
+}
+
+html[data-ipax-theme~="light"] {
+    --fslabel-red: var(--fslabel-red-i);
+    --fslabel-orange: var(--fslabel-orange-i);
+    --fslabel-yellow: var(--fslabel-yellow-i);
+    --fslabel-green: var(--fslabel-green-i);
+    --fslabel-blue: var(--fslabel-blue-i);
+    --fslabel-violet: var(--fslabel-violet-i);
+    --fslabel-brown: var(--fslabel-brown-i);
+    --fslabel-black: var(--fslabel-black-i);
+
+    --fslabel-row-tint: 20%;
+    --fslabel-child-tint: 9%;
 }

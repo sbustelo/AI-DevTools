@@ -1,0 +1,121 @@
+/* PATH: j0/src/0520-ui-windows/c0020-j0-window-sheet.css */
+/* Window Sheet — Modal overlay scoped to a single j0-window */
+
+.j0ui-window-sheet {
+    position: absolute;
+    inset: 0;
+    z-index: var(--ipax-z-sheet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--ipax-this-paper) 82%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    border-radius: inherit;
+}
+
+.j0ui-window-sheet.is-open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+j0-window > .j0ui-overlay-wrapper.j0ui-behavior-modal {
+    position: absolute;
+    top: var(--j0ui-size-header, 34px);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: color-mix(in srgb, var(--j0ui-bg-window) 85%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 0 0 var(--j0ui-radius) var(--j0ui-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+j0-window.has-modal-overlay .j0ui-shell-header {
+    position: relative;
+}
+
+j0-window.has-modal-overlay .j0ui-shell-header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--j0ui-bg-app) 35%, transparent);
+    pointer-events: none;
+    z-index: 10;
+}
+
+j0-window.has-modal-overlay .j0ui-resizer {
+    z-index: calc(var(--ipax-z-sheet) + 1);
+}
+
+.j0ui-window-sheet-inner {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--j0ui-space-sm);
+    animation: j0ui-sheet-in 0.2s ease;
+    text-align: center;
+    align-items: center;
+}
+
+@keyframes j0ui-sheet-in {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.j0ui-window-sheet-title {
+    font-family: var(--j0ui-font, var(--j0ui-font-sans));
+    font-size: var(--j0ui-size-font-xl, 16px);
+    color: var(--j0ui-text-main);
+    margin: 0 0 var(--j0ui-space-sm) 0;
+    font-weight: 600;
+    border: none;
+}
+
+.j0ui-window-sheet-body {
+    font-size: var(--j0ui-size-font-ui, 13px);
+    color: var(--j0ui-text-secondary, var(--j0ui-text-muted));
+    line-height: 1.5;
+    padding: 0 var(--j0ui-space-lg, 24px);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.j0ui-window-sheet-footer {
+    display: flex;
+    justify-content: center;
+    gap: var(--j0ui-space-sm);
+    margin-top: 4px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.j0ui-window-sheet-footer .j0ui-btn--ghost {
+    color: var(--j0ui-text-muted);
+    background: transparent;
+}
+
+.j0ui-window-sheet-footer .j0ui-btn--ghost:hover {
+    color: var(--j0ui-text-main);
+    background: color-mix(in srgb, var(--j0ui-text-main) 10%, transparent);
+}

@@ -18,14 +18,14 @@ Protocolos para mantener a las IA cortitas y la deuda técnica bajo control. Her
 ### 1. `ai0/` — Suite Local de Desarrollo IA y Primitivos `j0`
 Herramientas en PHP 8.2+ y Vanilla JS (corre en macOS Valet, Apache, Nginx o servidor embebido de PHP sin dependencias externas):
 
-- **`dumper` (`ai0dump.php`):** Árbol interactivo con checkboxes, categorías regex de exclusión, filtro **Show excluded only**, detección de binarios y generación de contexto lista para copiar o descargar.
-- **`patcher` (`ai0patch.php`):** Aplicador atómico multi-archivo con soporte para `CREATE`, `PATCH` (anclaje `1-Line First`), `MOVE`, `DISABLE` (`_`) y `DISCARD` (`_🗑️`), respaldos automáticos `_📦` y validación de sintaxis `php -l`.
+- **`Files` (`ai0dump.php`):** Explorador unificado a pantalla completa (`View`, `Dump`, `Purge` y `Restore`) con íconos `.ai0root.json`, colores de carpeta en cascada, acciones modulares, búsqueda en vivo y **Omnibar** en el topbar.
+- **`patcher` (`ai0patch.php`):** Aplicador atómico de comandos `ai0` (`CREATE`, `PATCH`, `MOVE`, `DISABLE`, `DISCARD`, `DUMP`, `TREE`), con confirmación ante divergencia de `=== ROOT: ===`, respaldos `_📦`, vista previa Dry-Run y validación `php -l`.
 - **`restore` (`ai0restore.php`):** Detecta lotes de respaldo `_📦` con marca de tiempo en el proyecto y restaura versiones previas en un clic.
 - **`purge` (`ai0purge.php`):** Libera espacio en disco preseleccionando ítems descartados (`_🗑️`, `__`) y respaldos (`_📦`), manteniendo protegidos por defecto los archivos deshabilitados por humanos (`_*`).
-- **Suite Modular `j0/` en 3 Capas (`core/`, `tooling/`, `src/`):**
-  - `j0/core/`: Micro-kernel unificado `01-j0kernel.js` (EventBus + Service Registry + Logger pasivo) y primitivos PHP base (`closest`, `config`, `prefix`, `scan`).
-  - `j0/tooling/`: Utilidades composables de build, escritura atómica, backups, tags de assets y caché HTML estática (stub `ai0build.php`).
-  - `j0/src/`: Módulos verticales políglotas (`vfs/` para KV + cookie SSR + IndexedDB blobs/documentos, y extensión de capacidad `vfs--remote/` para sincronización cloud con `j0auth`).
+- **`i18n-batch`:** Compara diccionarios unitarios `i18n/{lang}.json` o catálogos `M_dump()` por `source_hash`, valida integridad de `{placeholder}` y genera prompts delta mínimos para IA.
+- **Suite Modular `j0/` en 2 Capas (`core/` + `src/` por zonas OS):**
+  - `j0/core/`: Primitivos PHP puros para localizar, configurar, escanear y cargar dominios (`j0-closest`, `j0-config`, `j0-locate`, `j0-prefix`, `j0-scan`, `j0-use`).
+  - `j0/src/`: Módulos verticales ordenados por capas (`0010-kernel/j0010-kernel.js`, `0100-vfs` + `0100-vfs--remote`, `0110-i18n`, `0120-assets`, `0130-cache`, `0180-fs-io`, `0190-bundler`, `0500-ui-patterns`, `0510-ui-menus` y `0520-ui-windows`).
 
 #### Inicio Rápido (`ai0`)
 Copiá o creá un symlink de `ai0/` en la raíz de cualquier proyecto como `_ai0` (excluido nativamente por los scanners y builders de `ai0` y `j0`; agregá `_*` al `.gitignore` y a las exclusiones FTP de tu proyecto):
@@ -55,6 +55,8 @@ Prompts de sistema y skills creados por **Santiago Bustelo** (inspirados en el *
 - [`docs/j0-naming-conventions.md`](docs/j0-naming-conventions.md) — Taxonomía de prefijos (`_`, `__`, `_🗑️` *Discard*, `_📦`) y convenciones pseudo-BEM.
 - [`docs/j0-primitives.md`](docs/j0-primitives.md) — Referencia de API para módulos PHP y JS de `j0`.
 - [`docs/j0-tutorial.md`](docs/j0-tutorial.md) — Guía paso a paso de adopción progresiva.
+- [`docs/ai0_architecture_workflow_modules_guide.md`](docs/ai0_architecture_workflow_modules_guide.md) — Guía de módulos, flujo e integración `j0`–`ai0`.
+- [`docs/ai0_quickstart_agentic_workflow_tutorial.md`](docs/ai0_quickstart_agentic_workflow_tutorial.md) — Tutorial de instalación y flujo agéntico con `ai0`.
 - [`docs/ai0 CHANGELOG.md`](docs/ai0%20CHANGELOG.md) — Historial completo de versiones.
 
 ---

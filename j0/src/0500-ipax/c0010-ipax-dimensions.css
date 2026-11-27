@@ -1,0 +1,67 @@
+/* PATH: j0/src/0500-ipax/c0010-ipax-dimensions.css */
+/* IPAX 2 Level 0 — Dimensions, mix ratios, and canonical Z-Index Layer SSOT */
+
+:root {
+    /* ─── RADII ─── */
+    --ipax-0-radius-sm: 4px;
+    --ipax-0-radius-md: 6px;
+    --ipax-0-radius-lg: 8px;
+    --ipax-0-radius-pill: 999px;
+
+    /* ─── BORDERS & FOCUS ─── */
+    --ipax-0-border-width: 1px;
+    --ipax-0-accent-bar-width: 4px;
+    --ipax-0-focus-width: 2px;
+
+    /* ─── CONTROLS ─── */
+    --ipax-0-control-height: 36px;
+    --ipax-0-header-height: 34px;
+    --ipax-0-textarea-min-height: 80px;
+    --ipax-0-btn-pad-y: 6px;
+    --ipax-0-btn-pad-x: 12px;
+    --ipax-0-badge-pad-y: 2px;
+    --ipax-0-badge-pad-x: 8px;
+    --ipax-0-badge-font-size: 0.75rem;
+    --ipax-0-code-pad-y: 2px;
+    --ipax-0-code-pad-x: 6px;
+    --ipax-0-code-font-size: 0.9em;
+
+    /* ─── LAYOUT ─── */
+    --ipax-0-container: 800px;
+    --ipax-0-container-wide: 1200px;
+    --ipax-0-gutter: 1.25rem;
+    --ipax-0-grid-gutter: var(--ipax-pt-24);
+    --ipax-0-space-sm: 8px;
+    --ipax-0-space-md: 14px;
+    --ipax-0-space-lg: 24px;
+
+    /* ─── MIX RATIOS ─── */
+    --ipax-0-tint-pct: 4%;
+    --ipax-0-line-pct: 10%;
+    --ipax-0-rule-pct: 15%;
+    --ipax-0-wash-pct: 10%;
+    --ipax-0-link-hover-pct: 30%;
+    --ipax-0-shadow-pct: 22%;
+
+    /* ─── TEXT & MOTION ─── */
+    --ipax-0-line-height: 1.55;
+    --ipax-0-line-height-heading: 1.2;
+    --ipax-0-line-height-code: 1.5;
+    --ipax-0-underline-offset: 2px;
+    --ipax-0-transition: 0.15s;
+
+    /* ─── Z-INDEX LAYER SSOT (Canonical OS Stack) ─── */
+    --ipax-z-base: 0;
+    --ipax-z-sticky: 20;
+    --ipax-z-window: 100;
+    --ipax-z-sheet: 200;
+    --ipax-z-modal: 80000;
+    --ipax-z-menu: 90000;
+    --ipax-z-dropdown: 90000;
+    --ipax-z-safezone: 90010;
+    --ipax-z-submenu: 90020;
+    --ipax-z-popover: 95000;
+    --ipax-z-toast: 99000;
+    --ipax-z-tooltip: 99900;
+    --ipax-z-drag: 99999;
+}

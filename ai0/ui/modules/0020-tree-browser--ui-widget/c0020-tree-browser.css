@@ -1,13 +1,64 @@
-/* PATH: ai0-003/ui/modules/0020-tree-browser--ui-widget/c0020-tree-browser.css */
+/* PATH: ai0/ui/modules/0020-tree-browser--ui-widget/c0020-tree-browser.css */
 .j0ui-tree-toolbar {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-wrap: nowrap;
     align-items: center;
-    gap: 8px;
-    padding-bottom: 10px;
+    gap: 6px;
+    padding: 6px 8px;
     margin-bottom: 10px;
-    border-bottom: 1px solid var(--j0ui-border-subtle);
+    border: 1px solid var(--j0ui-border-subtle);
+    border-radius: var(--j0ui-radius-sm);
+    background: var(--j0ui-bg-panel);
+}
+
+.j0ui-tree-toolbar--root {
+    position: relative;
+    z-index: var(--j0ui-z-sticky, 20);
+    border-color: var(--j0ui-border-subtle);
+    background: color-mix(in srgb, var(--j0ui-bg-window) 72%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+[data-j0-root-pane] .j0ui-tree-toolbar {
+    margin-bottom: 0;
+}
+
+.j0ui-tree-toolbar:hover .j0ui-row-menu-trigger,
+.j0ui-tree-toolbar:focus-within .j0ui-row-menu-trigger {
+    opacity: 1;
+}
+
+.j0ui-root-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    padding: 4px 8px;
+    font-family: var(--j0ui-font-mono);
+    font-size: 12px;
+}
+
+.j0ui-toolbar-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.j0ui-btn--icon {
+    padding: 4px 7px;
+    min-width: 28px;
+    height: 28px;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.j0ui-btn--toolbar-text {
+    padding: 4px 8px;
+    height: 28px;
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .j0ui-tree-toolbar-title {
@@ -26,7 +77,8 @@
 
 .j0ui-tree-root {
     padding-left: 0;
-    max-height: 62vh;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -36,14 +88,24 @@
 
 .j0ui-tree-row {
     display: flex;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
     padding: 3px 6px;
     border-radius: var(--j0ui-radius-sm);
+    min-width: 0;
+}
+
+.j0ui-tree-row > input[type="checkbox"],
+.j0ui-tree-row > .j0ui-badge,
+.j0ui-tree-row > .j0ui-tree-caret,
+.j0ui-tree-row > .j0ui-tree-caret-spacer,
+.j0ui-tree-row > .j0ui-row-menu-trigger {
+    flex-shrink: 0;
 }
 
 .j0ui-tree-row:hover {
-    background: var(--j0ui-bg-hover);
+    background: color-mix(in srgb, var(--ipax-this-ink) 7%, transparent);
 }
 
 .j0ui-tree-caret {
@@ -66,13 +128,113 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
     font-family: var(--j0ui-font-mono);
     font-size: 12px;
     cursor: pointer;
 }
 
+.j0ui-tree-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Expanded directory hover focus (translucent luminance lift — blends over inherited folder colors) */
+.j0ui-tree-node[data-j0-node-type="dir"][data-j0-collapsed="false"]:hover > .j0ui-tree-branch {
+    background: color-mix(in srgb, var(--ipax-this-ink) 5%, transparent);
+    border-radius: var(--j0ui-radius-sm);
+}
+
+/* macOS Classic cascading folder color labels (opaque mix against surface — no alpha stacking) */
+[data-j0-label-color="red"]    { --fslabel-active: var(--fslabel-red); }
+[data-j0-label-color="orange"] { --fslabel-active: var(--fslabel-orange); }
+[data-j0-label-color="yellow"] { --fslabel-active: var(--fslabel-yellow); }
+[data-j0-label-color="green"]  { --fslabel-active: var(--fslabel-green); }
+[data-j0-label-color="blue"]   { --fslabel-active: var(--fslabel-blue); }
+[data-j0-label-color="violet"] { --fslabel-active: var(--fslabel-violet); }
+[data-j0-label-color="brown"]  { --fslabel-active: var(--fslabel-brown); }
+[data-j0-label-color="black"]  { --fslabel-active: var(--fslabel-black); }
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row {
+    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-row-tint), var(--j0ui-bg-window));
+}
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row:hover {
+    background: color-mix(in srgb, var(--j0ui-text-main) 8%, color-mix(in srgb, var(--fslabel-active) var(--fslabel-row-tint), var(--j0ui-bg-window)));
+}
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-branch {
+    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-child-tint), var(--j0ui-bg-window));
+    border-radius: var(--j0ui-radius-sm);
+}
+
+.j0ui-tree-node[data-j0-label-color][data-j0-collapsed="false"]:hover > .j0ui-tree-branch {
+    background: color-mix(in srgb, var(--j0ui-text-main) 5%, color-mix(in srgb, var(--fslabel-active) var(--fslabel-child-tint), var(--j0ui-bg-window)));
+}
+
+[data-j0-root-pane][data-j0-label-color] .j0ui-tree-toolbar {
+    border-color: color-mix(in srgb, var(--fslabel-active) 52%, var(--j0ui-border-subtle));
+    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-row-tint), var(--j0ui-bg-window));
+}
+
+[data-j0-root-pane][data-j0-label-color] .j0ui-tree-root {
+    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-child-tint), var(--j0ui-bg-window));
+    border-radius: var(--j0ui-radius-sm);
+    padding: 4px;
+}
+
 .j0ui-tree-node[data-j0-excluded="true"] > .j0ui-tree-row .j0ui-tree-label {
     color: var(--j0ui-text-muted);
+}
+
+.j0ui-tree-search-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 8px;
+    margin-bottom: 8px;
+    border-radius: var(--j0ui-radius-sm);
+    border: 1px solid color-mix(in srgb, var(--j0ui-accent) 45%, var(--j0ui-border-subtle));
+    background: color-mix(in srgb, var(--j0ui-accent) 10%, var(--j0ui-bg-panel));
+    font-size: 12px;
+}
+
+.j0ui-tree-search-banner[data-j0-hidden="true"] {
+    display: none;
+}
+
+.j0ui-tree-node[data-j0-search-hidden="true"] {
+    display: none;
+}
+
+.j0ui-tree-node[data-j0-search-hit="true"] > .j0ui-tree-row .j0ui-tree-name,
+.j0ui-shallow-item[data-j0-search-hit="true"] .j0ui-tree-label {
+    color: var(--j0ui-accent);
+    font-weight: 600;
+}
+
+.j0ui-shallow-item {
+    opacity: 0.72;
+}
+
+.j0ui-shallow-item[data-j0-shallow-dir] .j0ui-tree-row {
+    cursor: pointer;
+}
+
+.j0ui-shallow-icon {
+    filter: grayscale(1);
+    opacity: 0.75;
+}
+
+[data-j0-floater="open"] {
+    position: fixed;
+    left: var(--j0-float-x, 0px);
+    top: var(--j0-float-y, 0px);
+    z-index: 1000;
 }
 
 .j0ui-tree-node[data-j0-collapsed="true"] > .j0ui-tree-branch {

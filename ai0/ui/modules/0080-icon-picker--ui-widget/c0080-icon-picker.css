@@ -1,0 +1,132 @@
+/* PATH: ai0/ui/modules/0080-icon-picker--ui-widget/c0080-icon-picker.css */
+.j0ui-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--ipax-z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--ipax-this-paper) 78%, transparent);
+}
+
+.j0ui-modal-backdrop[data-j0-hidden="true"] {
+    display: none;
+}
+
+.j0ui-modal {
+    width: min(560px, 100%);
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: var(--ipax-0-space-md);
+    background: var(--ipax-this-paper);
+    border: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    border-radius: var(--ipax-0-radius-lg);
+}
+
+.j0ui-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.j0ui-modal-head h3 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.j0ui-icon-picker-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.j0ui-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 8px;
+    overflow-y: auto;
+    max-height: 46vh;
+    padding: 4px;
+}
+
+.j0ui-icon-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border: 1px solid var(--j0ui-border-subtle);
+    border-radius: var(--j0ui-radius-sm);
+    background: var(--j0ui-bg-panel);
+    color: var(--j0ui-text-main);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.j0ui-icon-tile:hover,
+.j0ui-icon-tile:focus-visible {
+    background: var(--j0ui-bg-hover);
+    border-color: var(--j0ui-accent);
+    outline: none;
+}
+
+.j0ui-icon-tile--selected {
+    border-color: var(--j0ui-accent);
+    background: color-mix(in srgb, var(--j0ui-accent) 18%, var(--j0ui-bg-panel));
+    box-shadow: 0 0 0 1px var(--j0ui-accent);
+}
+
+.j0ui-icon-tile-glyph {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.j0ui-icon-tile-glyph img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.j0ui-icon-none-glyph {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--j0ui-border-subtle);
+    border-radius: var(--j0ui-radius-sm);
+    background: linear-gradient(
+        -45deg,
+        transparent calc(50% - 1px),
+        var(--j0ui-danger) calc(50% - 1px),
+        var(--j0ui-danger) calc(50% + 1px),
+        transparent calc(50% + 1px)
+    );
+}
+
+.j0ui-icon-tile-label {
+    width: 100%;
+    font-family: var(--j0ui-font-mono);
+    font-size: 10px;
+    color: var(--j0ui-text-muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.j0ui-modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--j0ui-border-subtle);
+}

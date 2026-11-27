@@ -5,7 +5,7 @@ declare(strict_types=1);
 final class PatcherParser
 {
     /**
-     * Parses CREATE, PATCH (1-Line First), MOVE, DISABLE, and DISCARD blocks.
+     * Parses CREATE, PATCH (1-Line First), MOVE, DISABLE, DISCARD, DUMP, and TREE blocks.
      * Normalizes KaTeX-safe section markers (§) to dollar signs and tracks Markdown fences.
      *
      * @return array{operations: array<int, array<string, mixed>>, errors: array<int, string>}
@@ -17,11 +17,13 @@ final class PatcherParser
         $lines = explode("\n", $normalized);
         $operations = [];
         $errors = [];
+        $declaredRoot = null;
         $total = count($lines);
         $i = 0;
 
         while ($i < $total) {
-            if (self::isOperationHeader(trim($lines[$i]))) {
+            $trimProbe = trim($lines[$i]);
+            if (self::matchRootPragma($trimProbe) !== null || self::isAi0Pragma($trimProbe) || self::isOperationHeader($trimProbe)) {
                 break;
             }
             $i++;
@@ -30,7 +32,14 @@ final class PatcherParser
         while ($i < $total) {
             $line = trim($lines[$i]);
 
-            if ($line === '' || preg_match('/^`{3,}\z/', $line) === 1) {
+            if ($line === '' || preg_match('/^`{3,}\z/', $line) === 1 || self::isAi0Pragma($line)) {
+                $i++;
+                continue;
+            }
+
+            $rootCandidate = self::matchRootPragma($line);
+            if ($rootCandidate !== null) {
+                $declaredRoot = $rootCandidate;
                 $i++;
                 continue;
             }
@@ -45,11 +54,11 @@ final class PatcherParser
                 continue;
             }
 
-            if (preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD):\s*(.+?)\s*===\z/', $line, $m)) {
+            if (preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD|DUMP|TREE):\s*(.+?)\s*===\z/', $line, $m)) {
                 $type = $m[1];
                 $path = trim($m[2]);
 
-                if ($type === 'DISABLE' || $type === 'DISCARD') {
+                if ($type === 'DISABLE' || $type === 'DISCARD' || $type === 'DUMP' || $type === 'TREE') {
                     $operations[] = ['type' => $type, 'path' => $path];
                     $i++;
                     continue;
@@ -112,7 +121,11 @@ final class PatcherParser
             $i++;
         }
 
-        return ['operations' => $operations, 'errors' => $errors];
+        return [
+            'operations'    => $operations,
+            'errors'        => $errors,
+            'declared_root' => $declaredRoot,
+        ];
     }
 
     /**
@@ -180,12 +193,26 @@ final class PatcherParser
         return $hunks;
     }
 
+    private static function isAi0Pragma(string $line): bool
+    {
+        return preg_match('/^===\s*AI0\s*===\z/i', $line) === 1;
+    }
+
+    private static function matchRootPragma(string $line): ?string
+    {
+        if (preg_match('/^===\s*(?:AI0:\s*)?ROOT:\s*(.+?)\s*===\z/i', $line, $rm) === 1) {
+            $val = trim($rm[1]);
+            return $val !== '' ? $val : null;
+        }
+        return null;
+    }
+
     private static function isOperationHeader(string $line): bool
     {
         if (preg_match('/^===\s*MOVE:\s*(.+?)\s*->\s*(.+?)\s*===\z/', $line) === 1) {
             return true;
         }
-        return preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD):\s*(.+?)\s*===\z/', $line) === 1;
+        return preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD|DUMP|TREE):\s*(.+?)\s*===\z/', $line) === 1;
     }
 
     /**

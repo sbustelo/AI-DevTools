@@ -1,0 +1,70 @@
+/* PATH: j0/src/0500-ipax/c0000-ipax-tokens.css */
+/* IPAX 2 Level 0 — Quickstart reference template.
+   j0 does NOT impose brand colors: copy the commented Level 0 & Level 1 blocks
+   into your product's token stylesheet loaded after 0500-ipax. */
+
+/*
+:root {
+    --ipax-0-paper-x: #FFFFFF;
+    --ipax-0-paper: #F0F0F0;
+    --ipax-0-accent-p: #70b3f7;
+    --ipax-0-accent: #00519a;
+    --ipax-0-accent-i: #20486e;
+    --ipax-0-ink: #1E1E1E;
+    --ipax-0-ink-x: #000000;
+    --ipax-0-muted-pct: 70%;
+}
+
+/* Level 1 Dark override example (avoids naive inversion and halation):
+html[data-ipax-theme~="dark"] {
+    --ipax-1-paper: #302E29;
+    --ipax-1-accent-p: #56421d;
+    --ipax-1-accent: #754109;
+    --ipax-1-accent-i: #f0d2a3;
+}
+*/
+
+:root {
+    --ipax-0-muted-pct: 70%;
+    --ipax-0-deep-pct: 70%;
+
+    /* Semantic status anchors */
+    --ipax-0-danger: #EF4444;
+    --ipax-0-warning: #F59E0B;
+    --ipax-0-success: #10B981;
+
+    /* ─── FONTS ─── */
+    --ipax-font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    --ipax-font-headings: var(--ipax-font-sans);
+    --ipax-font-ui: var(--ipax-font-sans);
+    --ipax-font-serif: Georgia, serif;
+    --ipax-font-body: var(--ipax-font-sans);
+    --ipax-font-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+    /* ─── BASE SIZE & WEIGHTS ─── */
+    --ipax-0-root-size: 16px;
+    --ipax-0-weight-normal: 400;
+    --ipax-0-weight-step: 100;
+
+    /* ─── TYPE SCALE (em) ─── */
+    --ipax-pt-6: 0.5em;
+    --ipax-pt-7: 0.574em;
+    --ipax-pt-8: 0.66em;
+    --ipax-pt-9: 0.758em;
+    --ipax-pt-10: 0.871em;
+    --ipax-pt-11: 0.935em;
+    --ipax-pt-12: 1em;
+    --ipax-pt-14: 1.149em;
+    --ipax-pt-16: 1.32em;
+    --ipax-pt-18: 1.516em;
+    --ipax-pt-21: 1.741em;
+    --ipax-pt-24: 2em;
+    --ipax-pt-28: 2.297em;
+    --ipax-pt-32: 2.639em;
+    --ipax-pt-36: 3.031em;
+    --ipax-pt-42: 3.482em;
+    --ipax-pt-48: 4em;
+    --ipax-pt-56: 4.595em;
+    --ipax-pt-64: 5.278em;
+    --ipax-pt-72: 6.063em;
+}
