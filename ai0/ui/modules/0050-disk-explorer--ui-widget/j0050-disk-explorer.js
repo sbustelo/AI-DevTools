@@ -65,6 +65,8 @@
                 }
             });
         }
+
+        emitBus('ai0:tree:visual-changed', { kind: 'icon', rel: rel });
     }
 
     function navigateToRoot(nextRoot, vfsKey) {
@@ -223,7 +225,11 @@
 
                         const sIco = document.createElement('span');
                         sIco.className = 'j0ui-menu-icon';
-                        sIco.textContent = subItem.icon || '';
+                        const swatch = document.createElement('span');
+                        swatch.className = 'j0ui-fslabel-swatch';
+                        swatch.setAttribute('data-j0-swatch-color', subItem.value ? subItem.value : 'none');
+                        swatch.setAttribute('aria-hidden', 'true');
+                        sIco.appendChild(swatch);
                         const sLbl = document.createElement('span');
                         sLbl.textContent = subItem.label || '';
                         sBtn.appendChild(sIco);
@@ -258,16 +264,32 @@
                         }
 
                         const targetNode = activeItem;
-                        const colorHost = (relPath === '' && targetNode.closest)
-                            ? (targetNode.closest('[data-j0-root-pane]') || targetNode)
-                            : targetNode;
+                        let colorHost = targetNode;
+                        if (relPath === '') {
+                            colorHost = document.querySelector('[data-j0-root-pane]') || targetNode;
+                        } else {
+                            const treeRootEl = document.querySelector('[data-j0-tree-root]');
+                            if (treeRootEl) {
+                                const canonical = Array.from(treeRootEl.querySelectorAll('[data-j0-tree-node]')).find(function (n) {
+                                    return (n.getAttribute('data-j0-node-path') || '') === relPath;
+                                });
+                                if (canonical) {
+                                    colorHost = canonical;
+                                }
+                            }
+                        }
                         const prevColor = colorHost.getAttribute('data-j0-label-color');
-                        if (paramKey === 'color') {
-                            if (paramVal !== '') {
-                                colorHost.setAttribute('data-j0-label-color', paramVal);
+                        const applyColorState = function (val) {
+                            if (val !== null && val !== '') {
+                                colorHost.setAttribute('data-j0-label-color', val);
                             } else {
                                 colorHost.removeAttribute('data-j0-label-color');
                             }
+                            emitBus('ai0:tree:visual-changed', { kind: 'color', rel: relPath, color: val || '' });
+                        };
+
+                        if (paramKey === 'color') {
+                            applyColorState(paramVal);
                         }
 
                         clearDynamicSubmenus();
@@ -284,11 +306,7 @@
                         }).then(function (res) {
                             if (res && !res.ok) {
                                 if (paramKey === 'color') {
-                                    if (prevColor !== null) {
-                                        colorHost.setAttribute('data-j0-label-color', prevColor);
-                                    } else {
-                                        colorHost.removeAttribute('data-j0-label-color');
-                                    }
+                                    applyColorState(prevColor);
                                 }
                                 if (res.message) {
                                     root.alert(res.message);
@@ -303,11 +321,7 @@
                             }
                         }).catch(function (err) {
                             if (paramKey === 'color') {
-                                if (prevColor !== null) {
-                                    colorHost.setAttribute('data-j0-label-color', prevColor);
-                                } else {
-                                    colorHost.removeAttribute('data-j0-label-color');
-                                }
+                                applyColorState(prevColor);
                             }
                             root.alert('Action error: ' + String(err));
                         });
@@ -508,6 +522,34 @@
 
         if (root.j0 && root.j0.bus && typeof root.j0.bus.on === 'function') {
             root.j0.bus.on('ai0:node:icon-changed', applyLiveIconUpdate);
+            root.j0.bus.on('ai0:file:open-editor', function (payload) {
+                const rel = payload && typeof payload.rel === 'string' ? payload.rel : '';
+                if (!rel || dynamicApiUrl === '') {
+                    return;
+                }
+                const anyRootSelect = document.querySelector('[data-j0-root-select]');
+                const browseRoot = anyRootSelect ? anyRootSelect.value : (document.querySelector('input[name="browse_root"]')?.value || '');
+                fetch(dynamicApiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        op: 'run_action',
+                        browse_root: browseRoot,
+                        rel_path: rel,
+                        action_id: 'open_in_editor',
+                        params: {}
+                    })
+                }).then(function (r) {
+                    return r.json();
+                }).then(function (res) {
+                    if (res && !res.ok && res.message) {
+                        root.alert(res.message);
+                    }
+                }).catch(function (err) {
+                    root.alert('Editor launch error: ' + String(err));
+                });
+            });
         }
 
         document.addEventListener('keydown', function (event) {

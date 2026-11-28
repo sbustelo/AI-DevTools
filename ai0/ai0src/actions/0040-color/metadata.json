@@ -5,6 +5,7 @@
         "es": "Color"
     },
     "icon": "🎨",
+    "multi": true,
     "applies_to": ["dir"],
     "submenu": [
         { "value": "",       "icon": "⚪", "label": { "en": "No color", "es": "Sin color" } },

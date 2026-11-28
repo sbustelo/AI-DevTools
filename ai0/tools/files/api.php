@@ -8,6 +8,7 @@ if (!defined('J0_EXEC')) {
 
 require_once dirname(__DIR__, 2) . '/core/ai0-context.php';
 require_once __DIR__ . '/dumper-config.php';
+require_once __DIR__ . '/dumper-scanner.php';
 
 $ctx = ai0_resolve_context(__DIR__);
 header('Content-Type: application/json; charset=utf-8');
@@ -32,7 +33,8 @@ $iconsCfg = j0_config_json('icons', $ctx['domains']);
 $reqRoot = ai0_parse_input_path((string) ($input['browse_root'] ?? ''), $defaultRoot, $iconsCfg);
 $browseRoot = ($reqRoot !== '' && !str_contains($reqRoot, '..') && is_dir($reqRoot)) ? $reqRoot : $defaultRoot;
 
-$relPath = ltrim(str_replace($bs, '/', trim((string) ($input['rel_path'] ?? ''))), '/');
+$rawRelInput = str_replace($bs, '/', (string) ($input['rel_path'] ?? ''));
+$relPath = ltrim(trim($rawRelInput, " \t\n\r\0\x0B/"), '/');
 if (str_contains($relPath, '..')) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'message' => 'Invalid relative path.']);
@@ -40,28 +42,33 @@ if (str_contains($relPath, '..')) {
 }
 
 $targetAbs = $relPath === '' ? $browseRoot : (rtrim($browseRoot, '/') . '/' . $relPath);
-if (!file_exists($targetAbs)) {
-    http_response_code(404);
-    echo json_encode(['ok' => false, 'message' => 'Target not found.']);
-    exit;
+if (!file_exists($targetAbs) && !is_link($targetAbs)) {
+    if ($relPath !== '' && (file_exists($targetAbs . "\r") || is_link($targetAbs . "\r"))) {
+        $targetAbs .= "\r";
+        $relPath .= "\r";
+    } else {
+        http_response_code(404);
+        echo json_encode(['ok' => false, 'message' => 'Target not found.']);
+        exit;
+    }
 }
 
-$isDir = is_dir($targetAbs);
-$baseName = basename($targetAbs) ?: '/';
+$isLink = is_link($targetAbs);
+$isDir = !$isLink && is_dir($targetAbs);
+$rawBaseName = basename($targetAbs) ?: '/';
+$baseName = str_ends_with($rawBaseName, "\r") ? (rtrim($rawBaseName, "\r") . ' (Icon\\r)') : $rawBaseName;
 $dumperCfg = dumper_load_config($ctx);
-$prefixInfo = function_exists('j0_classify_prefix')
-    ? j0_classify_prefix($baseName, (array) ($dumperCfg['prefixes'] ?? []))
-    : ['state' => 'active'];
-$itemCat = $prefixInfo['state'] !== 'active'
-    ? (string) $prefixInfo['state']
-    : (str_starts_with($baseName, '.') ? 'hidden_dot' : '');
+$itemCat = DumperScanner::classifyPath($targetAbs, $browseRoot, $dumperCfg);
+$catDefs = is_array($dumperCfg['categories'] ?? null) ? $dumperCfg['categories'] : [];
+$rawCatLbl = ($itemCat !== 'none' && isset($catDefs[$itemCat]['label'])) ? $catDefs[$itemCat]['label'] : '';
+$itemCatLabel = is_array($rawCatLbl) ? L($rawCatLbl) : (string) $rawCatLbl;
 
 $targetInfo = [
     'abs'  => $targetAbs,
     'rel'  => $relPath,
-    'name' => $baseName,
+    'name' => $rawBaseName,
     'type' => $isDir ? 'dir' : 'file',
-    'cat'  => $itemCat,
+    'cat'  => $itemCat === 'none' ? '' : $itemCat,
 ];
 
 $op = (string) ($input['op'] ?? 'inspect');
@@ -133,7 +140,7 @@ if ($op === 'inspect') {
     $rootIconUrl = ($itemIconSpec['url'] ?? '') !== '' ? (string) $itemIconSpec['url'] : null;
 
     $actions = [];
-    foreach (ai0_discover_actions($ctx, $targetInfo) as $act) {
+    foreach (ai0_prune_action_separators(ai0_discover_actions($ctx, $targetInfo)) as $act) {
         if (($act['type'] ?? '') === 'separator') {
             $actions[] = ['type' => 'separator', 'id' => $act['id']];
             continue;
@@ -208,6 +215,20 @@ if ($op === 'inspect') {
         'mtime_human'     => date('Y-m-d H:i', (int) @filemtime($targetAbs)),
         'direct_items'    => $directCount,
         'is_root_dir'     => $relPath === '',
+        'is_project_root' => (static function () use ($isDir, $targetAbs): bool {
+            if (!$isDir) {
+                return false;
+            }
+            $mf = rtrim($targetAbs, '/') . '/.ai0root.json';
+            if (!is_file($mf) || !is_readable($mf)) {
+                return false;
+            }
+            $md = json_decode((string) file_get_contents($mf), true);
+            return is_array($md) && (!isset($md['is_project_root']) || $md['is_project_root'] !== false);
+        })(),
+        'is_symlink'      => $isLink,
+        'cat'             => $itemCat,
+        'cat_label'       => $itemCatLabel,
         'root_icon'       => $rootIcon,
         'root_icon_url'   => $rootIconUrl,
         'permissions'   => [
@@ -270,23 +291,48 @@ if ($op === 'update_attr') {
         exit;
     }
 
+    if ($field === 'is_project_root' && $isDir) {
+        $enableRoot = !empty($input['value']);
+        $tempDirPath = (string) ($ctx['temp_dir'] ?? '');
+        $ok = ai0_write_root_marker($targetAbs, ['is_project_root' => $enableRoot], $tempDirPath);
+        if ($ok && !$enableRoot && function_exists('ai0_list_declared_roots')) {
+            ai0_list_declared_roots($tempDirPath, $defaultRoot);
+        }
+        $resolvedIcon = function_exists('ai0_resolve_icon')
+            ? ai0_resolve_icon($targetAbs, $ctx, 'dir')
+            : ['value' => '📁', 'url' => ''];
+        echo json_encode([
+            'ok'              => $ok,
+            'is_project_root' => $enableRoot,
+            'rel'             => $relPath,
+            'abs_path'        => $targetAbs,
+            'icon'            => (string) ($resolvedIcon['value'] ?? '📁'),
+            'icon_url'        => (string) ($resolvedIcon['url'] ?? ''),
+            'message'         => $ok
+                ? ($enableRoot
+                    ? L('Marked as Project Root.', 'Marcado como Project Root.')
+                    : L('Unmarked as Project Root.', 'Desmarcado como Project Root.'))
+                : L('Failed to update .ai0root.json.', 'Error al actualizar .ai0root.json.'),
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     echo json_encode(['ok' => false, 'message' => 'Unknown attribute field.']);
     exit;
 }
 
 if ($op === 'list_icons') {
-    $items = [
-        ['value' => '🏠', 'label' => 'home / valet'],
-        ['value' => '🗄️', 'label' => 'server / cabinet'],
-        ['value' => '🗂️', 'label' => 'workspace / folders'],
-        ['value' => '🗃️', 'label' => 'archive / box'],
-        ['value' => '🚀', 'label' => 'project / launch'],
-        ['value' => '⚙️', 'label' => 'engine / core'],
-        ['value' => '🧪', 'label' => 'lab / sandbox'],
-        ['value' => '📦', 'label' => 'package / lib'],
-        ['value' => '🌐', 'label' => 'web / site'],
-        ['value' => '🛠️', 'label' => 'tools / dev'],
-    ];
+    $items = [];
+    $emojiMap = is_array($iconsCfg['picker_emojis'] ?? null) ? $iconsCfg['picker_emojis'] : [];
+    foreach ($emojiMap as $emoji => $label) {
+        if (!is_string($emoji) || trim($emoji) === '') {
+            continue;
+        }
+        $items[] = [
+            'value' => $emoji,
+            'label' => is_string($label) ? $label : $emoji,
+        ];
+    }
 
     $iconDirs = [
         rtrim((string) ($ctx['ai0_dir'] ?? dirname(__DIR__, 2)), '/') . '/ai0src/assets/icons',
@@ -367,9 +413,145 @@ if ($op === 'upload_icon') {
     exit;
 }
 
+$resolveBatchTargets = static function (array $rawList) use ($bs, $browseRoot, $dumperCfg): array {
+    $seen = [];
+    $resolved = [];
+    foreach ($rawList as $rawEntry) {
+        if (!is_string($rawEntry)) {
+            continue;
+        }
+        $norm = str_replace($bs, '/', $rawEntry);
+        $rel = ltrim(trim($norm, " \t\n\r\0\x0B/"), '/');
+        if ($rel === '' || str_contains($rel, '..')) {
+            continue;
+        }
+        $abs = rtrim($browseRoot, '/') . '/' . $rel;
+        if (!file_exists($abs) && !is_link($abs)) {
+            if (file_exists($abs . "\r") || is_link($abs . "\r")) {
+                $abs .= "\r";
+                $rel .= "\r";
+            } else {
+                continue;
+            }
+        }
+        if (isset($seen[$rel])) {
+            continue;
+        }
+        $seen[$rel] = true;
+        $entryIsLink = is_link($abs);
+        $entryIsDir = !$entryIsLink && is_dir($abs);
+        $entryCat = DumperScanner::classifyPath($abs, $browseRoot, $dumperCfg);
+        $resolved[] = [
+            'abs'  => $abs,
+            'rel'  => $rel,
+            'name' => basename($abs) ?: '/',
+            'type' => $entryIsDir ? 'dir' : 'file',
+            'cat'  => $entryCat === 'none' ? '' : $entryCat,
+        ];
+    }
+    return $resolved;
+};
+
+if ($op === 'inspect_multi') {
+    $rawPaths = is_array($input['rel_paths'] ?? null) ? $input['rel_paths'] : [];
+    $targets = $resolveBatchTargets($rawPaths);
+    if ($targets === []) {
+        echo json_encode(['ok' => false, 'message' => L('No valid items selected.', 'No hay elementos válidos seleccionados.')]);
+        exit;
+    }
+
+    $count = count($targets);
+    $sharedColor = null;
+    $firstDir = true;
+    foreach ($targets as $t) {
+        if (($t['type'] ?? '') !== 'dir') {
+            $sharedColor = null;
+            break;
+        }
+        $cVal = '';
+        $mf = rtrim((string) $t['abs'], '/') . '/.ai0root.json';
+        if (is_file($mf)) {
+            $md = json_decode((string) file_get_contents($mf), true);
+            if (is_array($md) && isset($md['color'])) {
+                $cVal = strtolower((string) $md['color']);
+            }
+        }
+        if ($firstDir) {
+            $sharedColor = $cVal;
+            $firstDir = false;
+        } elseif ($sharedColor !== $cVal) {
+            $sharedColor = null;
+            break;
+        }
+    }
+
+    $actions = [];
+    foreach (ai0_discover_multi_actions($ctx, $targets) as $act) {
+        if (($act['type'] ?? '') === 'separator') {
+            $actions[] = ['type' => 'separator', 'id' => $act['id']];
+            continue;
+        }
+        $rawLabel = $act['label'] ?? $act['id'];
+        $labelStr = is_array($rawLabel) ? L($rawLabel) : (string) $rawLabel;
+        $rawConfirm = $act['confirm_multi'] ?? $act['confirm'] ?? null;
+        $confirmStr = '';
+        if (is_array($rawConfirm)) {
+            $enTpl = (string) ($rawConfirm['en'] ?? '');
+            $esTpl = (string) ($rawConfirm['es'] ?? $enTpl);
+            $confirmStr = L($enTpl, $esTpl, [$count]);
+        } elseif (is_string($rawConfirm)) {
+            $confirmStr = str_replace('{0}', (string) $count, $rawConfirm);
+        }
+
+        $submenuOut = null;
+        if (is_array($act['submenu'] ?? null)) {
+            $submenuOut = [];
+            foreach ($act['submenu'] as $sub) {
+                $subLbl = is_array($sub['label'] ?? null) ? L($sub['label']) : (string) ($sub['label'] ?? '');
+                $subVal = (string) ($sub['value'] ?? '');
+                $submenuOut[] = [
+                    'value'   => $subVal,
+                    'icon'    => (string) ($sub['icon'] ?? ''),
+                    'label'   => $subLbl,
+                    'checked' => ($sharedColor !== null && $subVal === $sharedColor),
+                ];
+            }
+        }
+
+        $actions[] = [
+            'type'     => 'action',
+            'id'       => $act['id'],
+            'label'    => $labelStr,
+            'icon'     => $act['icon'],
+            'icon_url' => (string) ($act['icon_url'] ?? ''),
+            'class'    => $act['class'],
+            'danger'   => !empty($act['danger']),
+            'prompt'   => '',
+            'confirm'  => $confirmStr,
+            'submenu'  => $submenuOut,
+        ];
+    }
+
+    echo json_encode([
+        'ok'      => true,
+        'count'   => $count,
+        'header'  => L('{0} items selected', '{0} elementos seleccionados', [$count]),
+        'actions' => $actions,
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 if ($op === 'run_action') {
     $actionId = (string) ($input['action_id'] ?? '');
     $params = is_array($input['params'] ?? null) ? $input['params'] : [];
+    if (isset($input['rel_paths']) && is_array($input['rel_paths']) && $input['rel_paths'] !== []) {
+        $targets = $resolveBatchTargets($input['rel_paths']);
+        $res = count($targets) === 1
+            ? ai0_run_action($actionId, $ctx, $targets[0], $params)
+            : ai0_run_action_batch($actionId, $ctx, $targets, $params);
+        echo json_encode($res, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
     $res = ai0_run_action($actionId, $ctx, $targetInfo, $params);
     echo json_encode($res, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;

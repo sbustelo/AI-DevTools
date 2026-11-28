@@ -5,5 +5,7 @@
         "es": "Alternar _"
     },
     "icon": "🫥",
+    "multi": true,
+    "prune_descendants": true,
     "applies_to": ["file", "dir"]
 }

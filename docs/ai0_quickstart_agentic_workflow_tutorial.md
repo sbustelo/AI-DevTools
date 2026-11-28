@@ -91,3 +91,7 @@ Because your project is split into small, focused modules and **Files** lets you
 - **Parallel feature tracks:** Open Chat A with a dump of `modules/auth/` and Chat B with a dump of `modules/billing/`. Each chat operates on its own clean slice of context.
 - **Sequential patch application:** When each chat returns its `_ai0` patch block, apply them one after another in **patcher**. Each batch creates its own timestamped `_📦` restore point, keeping every agentic thread isolated, auditable, and reversible.
 - **On-demand mini-dumps from `patcher`:** If an AI chat asks to inspect one or two extra files mid-conversation, you do not even have to leave **patcher**—paste `=== DUMP: path/to/file.php ===` into the left column, run it, and copy the resulting mini-dump from the right column.
+
+---
+
+_ai0 & j0 (AI-DevTools) v5.0.11 • 2026-11-27 • Santiago Bustelo • [Apache 2.0 / CC BY 4.0 License](../LICENSE)_

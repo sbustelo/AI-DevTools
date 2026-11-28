@@ -86,3 +86,7 @@ When a project adopts `j0`, `ai0` provides the operational tooling around the co
 - **Zero-debt modular lifecycle:** Short, modular files for AI + `dumper` & `patcher` with `_📦` restore points + deferred `purge` + `j0` JIT bundling makes it practical to build and maintain real production applications on **free tiers, free hosting, or ~$2/month servers**, free from enterprise pattern bloat and unnecessary technical debt.
 
 *(Additional `j0`–`ai0` integration patterns will be documented as they are added to the suite.)*
+
+---
+
+_ai0 & j0 (AI-DevTools) v5.0.11 • 2026-11-27 • Santiago Bustelo • [Apache 2.0 / CC BY 4.0 License](../LICENSE)_

@@ -19,9 +19,11 @@ if (!function_exists('j0_locate_store')) {
     {
         static $store = [
             'project_root' => null,
+            'doc_root'     => null,
             'route_file'   => null,
             'routes'       => null,
             'mounted_dirs' => [],
+            'path_mounts'  => [],
             'index'        => null,
             'index_hash'   => '',
         ];
@@ -59,8 +61,46 @@ if (!function_exists('j0_project_root')) {
         }
 
         $bs = chr(92);
+        $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim(str_replace($bs, '/', (string) $_SERVER['DOCUMENT_ROOT']), '/') : '';
+        $scriptName = isset($_SERVER['SCRIPT_NAME']) ? str_replace($bs, '/', (string) $_SERVER['SCRIPT_NAME']) : '';
+
         if (defined('J0_ROOT_PATH') && is_string(J0_ROOT_PATH) && J0_ROOT_PATH !== '') {
             $root = rtrim(str_replace($bs, '/', J0_ROOT_PATH), '/');
+        } elseif ($docRoot !== '' && $scriptName !== '' && is_dir($docRoot)) {
+            $lexScriptDir = rtrim($docRoot . '/' . trim(dirname($scriptName), '/'), '/');
+            if ($lexScriptDir === '' || !is_dir($lexScriptDir)) {
+                $lexScriptDir = $docRoot;
+            }
+            $cursor = $lexScriptDir;
+            $root = $docRoot;
+            for ($i = 0; $i <= 12; $i++) {
+                if (
+                    is_file($cursor . '/.ai0root.json')
+                    || is_file($cursor . '/.j0route.php')
+                    || is_dir($cursor . '/j0')
+                    || is_dir($cursor . '/_j0')
+                    || is_dir($cursor . '/ai0')
+                    || is_dir($cursor . '/_ai0')
+                    || is_dir($cursor . '/src')
+                ) {
+                    $parentCheck = dirname($cursor);
+                    $inVendorMount = in_array(basename($cursor), ['ai0', '_ai0', 'j0', '_j0'], true)
+                        && $cursor !== $docRoot
+                        && str_starts_with($parentCheck . '/', $docRoot . '/');
+                    if (!$inVendorMount) {
+                        $root = $cursor;
+                        break;
+                    }
+                }
+                if ($cursor === $docRoot) {
+                    break;
+                }
+                $parent = dirname($cursor);
+                if ($parent === $cursor) {
+                    break;
+                }
+                $cursor = $parent;
+            }
         } elseif (!empty($_SERVER['SCRIPT_FILENAME'])) {
             $cursor = dirname(str_replace($bs, '/', (string) $_SERVER['SCRIPT_FILENAME']));
             $root = $cursor;
@@ -430,39 +470,160 @@ if (!function_exists('j0_path')) {
     }
 }
 
+if (!function_exists('j0_register_mount')) {
+    /**
+     * Pins a physical directory (resolved symlink target) to its logical mount path in memory.
+     */
+    function j0_register_mount(string $name, string $physicalDir, string $logicalDir): void
+    {
+        $bs = chr(92);
+        $physClean = rtrim(str_replace($bs, '/', $physicalDir), '/');
+        $logClean = rtrim(str_replace($bs, '/', $logicalDir), '/');
+        if ($name === '' || $physClean === '' || $logClean === '' || !is_dir($logClean)) {
+            return;
+        }
+        $realPhys = @realpath($physClean);
+        $physNorm = $realPhys !== false ? rtrim(str_replace($bs, '/', $realPhys), '/') : $physClean;
+
+        $store = &j0_locate_store();
+        $store['path_mounts'][$name] = [
+            'physical' => $physNorm,
+            'declared' => $physClean,
+            'logical'  => $logClean,
+        ];
+    }
+}
+
+if (!function_exists('j0_auto_bind_core_mounts')) {
+    /**
+     * Ensures j0 (and ai0 if loaded) have verified logical mount paths pinned in memory.
+     */
+    function j0_auto_bind_core_mounts(): void
+    {
+        $bs = chr(92);
+        $store = &j0_locate_store();
+        $root = j0_project_root();
+        $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim(str_replace($bs, '/', (string) $_SERVER['DOCUMENT_ROOT']), '/') : '';
+        $bases = array_values(array_unique(array_filter([$root, $docRoot])));
+
+        if (defined('J0_DIR')) {
+            $j0Phys = rtrim(str_replace($bs, '/', (string) J0_DIR), '/');
+            $existingJ0 = $store['path_mounts']['j0']['logical'] ?? '';
+            if ($existingJ0 === '' || !is_dir($existingJ0)) {
+                $j0Real = @realpath($j0Phys);
+                foreach ($bases as $base) {
+                    foreach (['j0', '_j0', 'ai0/j0', '_ai0/j0', 'vendors/j0', 'vendor/j0'] as $cand) {
+                        $candAbs = $base . '/' . $cand;
+                        if (is_dir($candAbs)) {
+                            $candReal = @realpath($candAbs);
+                            if ($candReal !== false && $j0Real !== false && str_replace($bs, '/', $candReal) === str_replace($bs, '/', $j0Real)) {
+                                j0_register_mount('j0', $j0Phys, $candAbs);
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (defined('AI0_DIR')) {
+            $ai0Phys = rtrim(str_replace($bs, '/', (string) AI0_DIR), '/');
+            $existingAi0 = $store['path_mounts']['ai0']['logical'] ?? '';
+            if ($existingAi0 === '' || !is_dir($existingAi0)) {
+                $ai0Real = @realpath($ai0Phys);
+                foreach ($bases as $base) {
+                    foreach (['_ai0', 'ai0'] as $cand) {
+                        $candAbs = $base . '/' . $cand;
+                        if (is_dir($candAbs)) {
+                            $candReal = @realpath($candAbs);
+                            if ($candReal !== false && $ai0Real !== false && str_replace($bs, '/', $candReal) === str_replace($bs, '/', $ai0Real)) {
+                                j0_register_mount('ai0', $ai0Phys, $candAbs);
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+if (!function_exists('j0_logical_path')) {
+    /**
+     * Translates any physical path inside a mounted symlinked package into its host logical path.
+     */
+    function j0_logical_path(string $absPath): string
+    {
+        $bs = chr(92);
+        $norm = rtrim(str_replace($bs, '/', $absPath), '/');
+        if ($norm === '') {
+            return $absPath === '/' ? '/' : '';
+        }
+
+        j0_auto_bind_core_mounts();
+        $store = &j0_locate_store();
+
+        foreach ($store['path_mounts'] as $mount) {
+            $logDir = $mount['logical'];
+            if (!is_dir($logDir)) {
+                continue;
+            }
+            foreach ([$mount['physical'], $mount['declared']] as $physDir) {
+                if ($physDir === '') {
+                    continue;
+                }
+                if ($norm === $physDir) {
+                    return $logDir;
+                }
+                if (str_starts_with($norm, $physDir . '/')) {
+                    return $logDir . substr($norm, strlen($physDir));
+                }
+            }
+        }
+
+        return $norm;
+    }
+}
+
 if (!function_exists('j0_path_to_web_url')) {
     /**
-     * Converts an in-webroot physical path into a public HTTP URL (handling lexical j0 symlinks).
+     * Converts an in-webroot physical or logical path into a canonical root-anchored HTTP URL.
      */
     function j0_path_to_web_url(string $absPath): ?string
     {
         $bs = chr(92);
-        $normFile = str_replace($bs, '/', $absPath);
         $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim(str_replace($bs, '/', (string) $_SERVER['DOCUMENT_ROOT']), '/') : '';
         if ($docRoot === '') {
             return null;
         }
 
-        $j0Dir = defined('J0_DIR') ? rtrim(str_replace($bs, '/', (string) J0_DIR), '/') : str_replace($bs, '/', __DIR__);
-        $root = j0_project_root();
-        if (str_starts_with($normFile, $j0Dir . '/')) {
-            foreach (['j0', '_j0', 'ai0/j0', '_ai0/j0'] as $alias) {
-                if (is_dir($root . '/' . $alias)) {
-                    $normFile = $root . '/' . $alias . substr($normFile, strlen($j0Dir));
-                    break;
-                }
-            }
-        }
-
-        if (str_starts_with($normFile, $docRoot . '/')) {
+        $normFile = j0_logical_path($absPath);
+        if ($normFile === $docRoot) {
+            $relUrl = '/';
+        } elseif (str_starts_with($normFile, $docRoot . '/')) {
             $relUrl = substr($normFile, strlen($docRoot));
-            if (defined('J0_BASE_URL') && is_string(J0_BASE_URL) && J0_BASE_URL !== '') {
-                return rtrim(J0_BASE_URL, '/') . '/' . ltrim($relUrl, '/');
+        } else {
+            $realDoc = @realpath($docRoot);
+            $realNorm = @realpath($normFile);
+            if ($realDoc !== false && $realNorm !== false) {
+                $rDoc = rtrim(str_replace($bs, '/', $realDoc), '/');
+                $rNorm = rtrim(str_replace($bs, '/', $realNorm), '/');
+                if ($rNorm === $rDoc) {
+                    $relUrl = '/';
+                } elseif (str_starts_with($rNorm, $rDoc . '/')) {
+                    $relUrl = substr($rNorm, strlen($rDoc));
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
             }
-            return $relUrl;
         }
 
-        return null;
+        if (defined('J0_BASE_URL') && is_string(J0_BASE_URL) && J0_BASE_URL !== '') {
+            return rtrim(J0_BASE_URL, '/') . '/' . ltrim($relUrl, '/');
+        }
+        return '/' . ltrim($relUrl, '/');
     }
 }
 

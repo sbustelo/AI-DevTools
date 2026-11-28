@@ -7,18 +7,24 @@ if (function_exists('j0_use')) {
 }
 require_once dirname(__DIR__) . '/files/dumper-formatter.php';
 require_once __DIR__ . '/patcher-katex-guard.php';
+require_once __DIR__ . '/patcher-staging.php';
 
 final class PatcherEngine
 {
     private string $projectRoot;
     private string $timestamp;
     private ?string $phpCli;
+    private string $stagingDir;
 
-    public function __construct(string $projectRoot, ?string $timestamp = null)
+    public function __construct(string $projectRoot, ?string $timestamp = null, ?string $tempDir = null)
     {
         $this->projectRoot = rtrim($projectRoot, '/');
         $this->timestamp = $timestamp ?? date('Y-m-d\TH-i-s');
         $this->phpCli = $this->resolvePhpCli();
+        $cleanTemp = ($tempDir !== null && trim($tempDir) !== '')
+            ? rtrim(str_replace(chr(92), '/', $tempDir), '/')
+            : ($this->projectRoot . '/_j0-temp');
+        $this->stagingDir = $cleanTemp . '/patcher-staging';
     }
 
     /**
@@ -50,6 +56,17 @@ final class PatcherEngine
 
             $type = (string) ($op['type'] ?? '');
             $relPath = (string) ($op['path'] ?? '');
+
+            if ($type === 'RESOLVE' || $type === 'RETRY_HUNK') {
+                $sim = $this->simulateStagedOp($op);
+                foreach ($sim['applied'] as $msg) {
+                    $planned[] = $msg;
+                }
+                foreach ($sim['errors'] as $err) {
+                    $errors[] = $err;
+                }
+                continue;
+            }
 
             if ($type === 'MOVE') {
                 $dstRel = (string) ($op['dest'] ?? '');
@@ -122,7 +139,15 @@ final class PatcherEngine
 
                 $hunkFailed = false;
                 foreach ($op['hunks'] as $idx => $hunk) {
-                    $patchRes = $this->applyHunk($buffer, $hunk['start'], $hunk['end'], $hunk['replace'], $idx + 1);
+                    $patchRes = $this->applyHunk(
+                        $buffer,
+                        (string) $hunk['start'],
+                        (string) $hunk['end'],
+                        (string) $hunk['replace'],
+                        $idx + 1,
+                        (int) ($hunk['start_match'] ?? 0),
+                        (int) ($hunk['end_match'] ?? 0)
+                    );
                     if (!$patchRes['ok']) {
                         $errors[] = ['path' => $relPath, 'reason' => $patchRes['message']];
                         $hunkFailed = true;
@@ -167,15 +192,37 @@ final class PatcherEngine
         $errors = [];
         $dumpFiles = [];
         $treeOutputs = [];
+        $stagedFiles = [];
 
         foreach ($operations as $op) {
-            $opWarnings = PatcherKatexGuard::scanOperation($op);
+            if ((string) ($op['type'] ?? '') === 'RETRY_HUNK' && isset($op['hunk_def'])) {
+                $scanTarget = ['type' => 'PATCH', 'path' => (string) ($op['path'] ?? ''), 'hunks' => [$op['hunk_def']]];
+                $opWarnings = PatcherKatexGuard::scanOperation($scanTarget);
+            } else {
+                $opWarnings = PatcherKatexGuard::scanOperation($op);
+            }
             if ($opWarnings !== []) {
                 $warnings = array_merge($warnings, $opWarnings);
             }
 
             $type = (string) ($op['type'] ?? '');
             $relPath = (string) ($op['path'] ?? '');
+
+            if ($type === 'RESOLVE') {
+                $resBatch = $this->executeResolve($op);
+                $applied = array_merge($applied, $resBatch['applied']);
+                $errors = array_merge($errors, $resBatch['errors']);
+                continue;
+            }
+            if ($type === 'RETRY_HUNK') {
+                $resRetry = $this->executeRetryHunk($op);
+                if ($resRetry['ok']) {
+                    $applied[] = $resRetry['message'];
+                } else {
+                    $errors[] = ['path' => $relPath, 'reason' => $resRetry['message']];
+                }
+                continue;
+            }
 
             if ($type === 'DUMP' || $type === 'TREE') {
                 $res = $this->collectInspection($type, $relPath, $dumpFiles, $treeOutputs);
@@ -193,15 +240,33 @@ final class PatcherEngine
                 $applied[] = $res['message'];
             } else {
                 $errors[] = ['path' => $relPath, 'reason' => $res['message']];
+                if ($type === 'PATCH' && !empty($res['stageable'])) {
+                    $fullPath = $this->resolveSafePath($relPath);
+                    $sha1 = $fullPath !== null ? PatcherStaging::hashFile($fullPath) : null;
+                    if ($sha1 !== null) {
+                        $stagedFiles[$relPath] = [
+                            'sha1'        => $sha1,
+                            'hunks'       => $op['hunks'],
+                            'failed_hunk' => (int) ($res['failed_hunk'] ?? 1),
+                        ];
+                    }
+                }
             }
         }
 
+        $stagedBatchId = null;
+        if ($stagedFiles !== [] && PatcherStaging::saveBatch($this->stagingDir, $this->timestamp, $this->projectRoot, $stagedFiles)) {
+            $stagedBatchId = $this->timestamp;
+        }
+
         return [
-            'timestamp'   => $this->timestamp,
-            'applied'     => $applied,
-            'warnings'    => $warnings,
-            'errors'      => $errors,
-            'read_output' => $this->formatInspectionOutput($dumpFiles, $treeOutputs),
+            'timestamp'    => $this->timestamp,
+            'applied'      => $applied,
+            'warnings'     => $warnings,
+            'errors'       => $errors,
+            'staged_batch' => $stagedBatchId,
+            'staged_files' => array_keys($stagedFiles),
+            'read_output'  => $this->formatInspectionOutput($dumpFiles, $treeOutputs),
         ];
     }
 
@@ -288,10 +353,23 @@ final class PatcherEngine
                 return ['ok' => false, 'message' => 'Target file does not exist for PATCH.'];
             }
             foreach ($op['hunks'] as $idx => $hunk) {
-                $patchRes = $this->applyHunk($buffer, $hunk['start'], $hunk['end'], $hunk['replace'], $idx + 1);
+                $patchRes = $this->applyHunk(
+                    $buffer,
+                    (string) $hunk['start'],
+                    (string) $hunk['end'],
+                    (string) $hunk['replace'],
+                    $idx + 1,
+                    (int) ($hunk['start_match'] ?? 0),
+                    (int) ($hunk['end_match'] ?? 0)
+                );
                 if (!$patchRes['ok']) {
                     $this->rollbackSingle($fullPath, $backupPath, $existed);
-                    return ['ok' => false, 'message' => $patchRes['message']];
+                    return [
+                        'ok'          => false,
+                        'message'     => $patchRes['message'],
+                        'stageable'   => true,
+                        'failed_hunk' => $idx + 1,
+                    ];
                 }
                 $buffer = $patchRes['content'];
             }
@@ -330,13 +408,215 @@ final class PatcherEngine
      *
      * @return array{ok: bool, content: string, message: string}
      */
-    private function applyHunk(string $buffer, string $start, string $end, string $replace, int $num): array
+    /**
+     * @param array<string, mixed> $op
+     * @return array{applied: array<int, string>, errors: array<int, array{path: string, reason: string}>}
+     */
+    private function executeResolve(array $op): array
     {
+        $batchId = (string) ($op['batch_id'] ?? '');
+        $entries = is_array($op['entries'] ?? null) ? $op['entries'] : [];
+        $batch = PatcherStaging::loadBatch($this->stagingDir, $batchId);
+        if ($batch === null) {
+            return ['applied' => [], 'errors' => [['path' => $batchId, 'reason' => "Staged batch not found or expired: {$batchId}"]]];
+        }
+
+        $byFile = [];
+        foreach ($entries as $entry) {
+            $byFile[(string) $entry['path']][] = $entry;
+        }
+
+        $applied = [];
+        $errors = [];
+        foreach ($byFile as $relPath => $fileEntries) {
+            if (!isset($batch['files'][$relPath])) {
+                $errors[] = ['path' => $relPath, 'reason' => "File not found in staged batch {$batchId}."];
+                continue;
+            }
+            $fullPath = $this->resolveSafePath($relPath);
+            $curHash = $fullPath !== null ? PatcherStaging::hashFile($fullPath) : null;
+            $expectedHash = (string) ($batch['files'][$relPath]['sha1'] ?? '');
+            if ($curHash === null || $curHash !== $expectedHash) {
+                $errors[] = ['path' => $relPath, 'reason' => "File changed on disk since batch {$batchId} (SHA-1 mismatch). Re-issue full PATCH."];
+                continue;
+            }
+
+            $hunks = $batch['files'][$relPath]['hunks'];
+            $invalidIdx = false;
+            foreach ($fileEntries as $fe) {
+                $hIdx = ((int) $fe['hunk']) - 1;
+                if (!isset($hunks[$hIdx])) {
+                    $errors[] = ['path' => $relPath, 'reason' => "Hunk #{$fe['hunk']} does not exist in staged batch {$batchId}."];
+                    $invalidIdx = true;
+                    break;
+                }
+                if ((int) ($fe['start_match'] ?? 0) > 0) {
+                    $hunks[$hIdx]['start_match'] = (int) $fe['start_match'];
+                }
+                if ((int) ($fe['end_match'] ?? 0) > 0) {
+                    $hunks[$hIdx]['end_match'] = (int) $fe['end_match'];
+                }
+            }
+            if ($invalidIdx) {
+                continue;
+            }
+
+            $res = $this->executeWriteOp($relPath, ['type' => 'PATCH', 'path' => $relPath, 'hunks' => $hunks]);
+            if ($res['ok']) {
+                $applied[] = $res['message'] . " (resolved {$batchId})";
+                PatcherStaging::removeFile($this->stagingDir, $batchId, $relPath);
+            } else {
+                $batch['files'][$relPath]['hunks'] = $hunks;
+                PatcherStaging::saveBatch($this->stagingDir, $batchId, $this->projectRoot, $batch['files']);
+                $errors[] = ['path' => $relPath, 'reason' => $res['message']];
+            }
+        }
+
+        return ['applied' => $applied, 'errors' => $errors];
+    }
+
+    /**
+     * @param array<string, mixed> $op
+     * @return array{ok: bool, message: string}
+     */
+    private function executeRetryHunk(array $op): array
+    {
+        $batchId = (string) ($op['batch_id'] ?? '');
+        $relPath = (string) ($op['path'] ?? '');
+        $hunkNum = (int) ($op['hunk'] ?? 0);
+        $hunkDef = is_array($op['hunk_def'] ?? null) ? $op['hunk_def'] : null;
+
+        $batch = PatcherStaging::loadBatch($this->stagingDir, $batchId);
+        if ($batch === null) {
+            return ['ok' => false, 'message' => "Staged batch not found or expired: {$batchId}"];
+        }
+        if (!isset($batch['files'][$relPath])) {
+            return ['ok' => false, 'message' => "File not found in staged batch {$batchId}."];
+        }
+        $hIdx = $hunkNum - 1;
+        if ($hunkDef === null || !isset($batch['files'][$relPath]['hunks'][$hIdx])) {
+            return ['ok' => false, 'message' => "Hunk #{$hunkNum} does not exist in staged batch {$batchId}."];
+        }
+
+        $fullPath = $this->resolveSafePath($relPath);
+        $curHash = $fullPath !== null ? PatcherStaging::hashFile($fullPath) : null;
+        $expectedHash = (string) ($batch['files'][$relPath]['sha1'] ?? '');
+        if ($curHash === null || $curHash !== $expectedHash) {
+            return ['ok' => false, 'message' => "File changed on disk since batch {$batchId} (SHA-1 mismatch). Re-issue full PATCH."];
+        }
+
+        $hunks = $batch['files'][$relPath]['hunks'];
+        $hunks[$hIdx] = $hunkDef;
+
+        $res = $this->executeWriteOp($relPath, ['type' => 'PATCH', 'path' => $relPath, 'hunks' => $hunks]);
+        if ($res['ok']) {
+            PatcherStaging::removeFile($this->stagingDir, $batchId, $relPath);
+            return ['ok' => true, 'message' => $res['message'] . " (retried {$batchId} #{$hunkNum})"];
+        }
+
+        $batch['files'][$relPath]['hunks'] = $hunks;
+        PatcherStaging::saveBatch($this->stagingDir, $batchId, $this->projectRoot, $batch['files']);
+        return ['ok' => false, 'message' => $res['message']];
+    }
+
+    /**
+     * Simulates RESOLVE or RETRY_HUNK in memory without modifying disk or staging files.
+     *
+     * @param array<string, mixed> $op
+     * @return array{applied: array<int, string>, errors: array<int, array{path: string, reason: string}>}
+     */
+    private function simulateStagedOp(array $op): array
+    {
+        $type = (string) ($op['type'] ?? '');
+        $batchId = (string) ($op['batch_id'] ?? '');
+        $batch = PatcherStaging::loadBatch($this->stagingDir, $batchId);
+        if ($batch === null) {
+            return ['applied' => [], 'errors' => [['path' => $batchId, 'reason' => "Staged batch not found or expired: {$batchId}"]]];
+        }
+
+        $targets = [];
+        if ($type === 'RETRY_HUNK') {
+            $rel = (string) ($op['path'] ?? '');
+            $hIdx = ((int) ($op['hunk'] ?? 0)) - 1;
+            if (!isset($batch['files'][$rel]['hunks'][$hIdx])) {
+                return ['applied' => [], 'errors' => [['path' => $rel, 'reason' => "Hunk #{$op['hunk']} not found in staged batch {$batchId}."]]];
+            }
+            $hunks = $batch['files'][$rel]['hunks'];
+            $hunks[$hIdx] = $op['hunk_def'];
+            $targets[$rel] = $hunks;
+        } else {
+            foreach ((array) ($op['entries'] ?? []) as $fe) {
+                $rel = (string) $fe['path'];
+                if (!isset($targets[$rel])) {
+                    if (!isset($batch['files'][$rel])) {
+                        return ['applied' => [], 'errors' => [['path' => $rel, 'reason' => "File not found in staged batch {$batchId}."]]];
+                    }
+                    $targets[$rel] = $batch['files'][$rel]['hunks'];
+                }
+                $hIdx = ((int) $fe['hunk']) - 1;
+                if (!isset($targets[$rel][$hIdx])) {
+                    return ['applied' => [], 'errors' => [['path' => $rel, 'reason' => "Hunk #{$fe['hunk']} not found in staged batch {$batchId}."]]];
+                }
+                if ((int) ($fe['start_match'] ?? 0) > 0) {
+                    $targets[$rel][$hIdx]['start_match'] = (int) $fe['start_match'];
+                }
+                if ((int) ($fe['end_match'] ?? 0) > 0) {
+                    $targets[$rel][$hIdx]['end_match'] = (int) $fe['end_match'];
+                }
+            }
+        }
+
+        $applied = [];
+        $errors = [];
+        foreach ($targets as $relPath => $hunks) {
+            $fullPath = $this->resolveSafePath($relPath);
+            $curHash = $fullPath !== null ? PatcherStaging::hashFile($fullPath) : null;
+            $expectedHash = (string) ($batch['files'][$relPath]['sha1'] ?? '');
+            if ($fullPath === null || $curHash === null || $curHash !== $expectedHash) {
+                $errors[] = ['path' => $relPath, 'reason' => "File changed on disk since batch {$batchId} (SHA-1 mismatch)."];
+                continue;
+            }
+            $buffer = str_replace(["\r\n", "\r"], "\n", (string) file_get_contents($fullPath));
+            $failed = false;
+            foreach ($hunks as $idx => $hunk) {
+                $patchRes = $this->applyHunk(
+                    $buffer,
+                    (string) $hunk['start'],
+                    (string) $hunk['end'],
+                    (string) $hunk['replace'],
+                    $idx + 1,
+                    (int) ($hunk['start_match'] ?? 0),
+                    (int) ($hunk['end_match'] ?? 0)
+                );
+                if (!$patchRes['ok']) {
+                    $errors[] = ['path' => $relPath, 'reason' => $patchRes['message']];
+                    $failed = true;
+                    break;
+                }
+                $buffer = $patchRes['content'];
+            }
+            if (!$failed) {
+                $applied[] = "DRY-RUN {$type}: {$relPath} (" . strlen($buffer) . ' bytes)';
+            }
+        }
+
+        return ['applied' => $applied, 'errors' => $errors];
+    }
+
+    private function applyHunk(
+        string $buffer,
+        string $start,
+        string $end,
+        string $replace,
+        int $num,
+        int $startMatch = 0,
+        int $endMatch = 0
+    ): array {
         if ($start === '') {
             return ['ok' => false, 'content' => $buffer, 'message' => "Hunk #{$num}: empty START anchor."];
         }
 
-        $startSpan = $this->resolveSpan($buffer, $start, "Hunk #{$num}: START");
+        $startSpan = $this->resolveSpan($buffer, $start, "Hunk #{$num}: START", $startMatch, 0);
         if (!$startSpan['ok']) {
             return ['ok' => false, 'content' => $buffer, 'message' => $startSpan['message']];
         }
@@ -350,7 +630,8 @@ final class PatcherEngine
         }
 
         $tail = substr($buffer, $startEnd);
-        $endSpan = $this->resolveSpan($tail, $end, "Hunk #{$num}: END");
+        $lineOffset = substr_count(substr($buffer, 0, $startEnd), "\n");
+        $endSpan = $this->resolveSpan($tail, $end, "Hunk #{$num}: END", $endMatch, $lineOffset);
         if (!$endSpan['ok']) {
             return ['ok' => false, 'content' => $buffer, 'message' => $endSpan['message']];
         }
@@ -364,15 +645,43 @@ final class PatcherEngine
     /**
      * @return array{ok: bool, start: int, end: int, message: string}
      */
-    private function resolveSpan(string $haystack, string $needle, string $label): array
-    {
-        $exactCount = substr_count($haystack, $needle);
-        if ($exactCount === 1) {
-            $pos = (int) strpos($haystack, $needle);
-            return ['ok' => true, 'start' => $pos, 'end' => $pos + strlen($needle), 'message' => 'OK'];
+    private function resolveSpan(
+        string $haystack,
+        string $needle,
+        string $label,
+        int $matchIndex = 0,
+        int $lineOffset = 0
+    ): array {
+        $exactMatches = [];
+        $cursor = 0;
+        $needleLen = strlen($needle);
+        if ($needleLen > 0) {
+            while (($pos = strpos($haystack, $needle, $cursor)) !== false) {
+                $lineNum = $lineOffset + substr_count(substr($haystack, 0, $pos), "\n") + 1;
+                $exactMatches[] = [
+                    'start' => $pos,
+                    'end'   => $pos + $needleLen,
+                    'line'  => $lineNum,
+                ];
+                $cursor = $pos + 1;
+            }
+        }
+
+        $exactCount = count($exactMatches);
+        if ($exactCount === 1 && $matchIndex <= 1) {
+            return ['ok' => true, 'start' => $exactMatches[0]['start'], 'end' => $exactMatches[0]['end'], 'message' => 'OK'];
         }
         if ($exactCount > 1) {
-            return ['ok' => false, 'start' => 0, 'end' => 0, 'message' => "{$label} anchor ambiguous ({$exactCount} matches)."];
+            if ($matchIndex > 0) {
+                if ($matchIndex <= $exactCount) {
+                    $chosen = $exactMatches[$matchIndex - 1];
+                    return ['ok' => true, 'start' => $chosen['start'], 'end' => $chosen['end'], 'message' => 'OK'];
+                }
+                return ['ok' => false, 'start' => 0, 'end' => 0, 'message' => "{$label} match #{$matchIndex} out of range (only {$exactCount} matches)."];
+            }
+            $bufLines = $this->indexLines($haystack, $lineOffset);
+            $preview = $this->formatAmbiguousMatches($exactMatches, $bufLines);
+            return ['ok' => false, 'start' => 0, 'end' => 0, 'message' => "{$label} anchor ambiguous ({$exactCount} matches: {$preview})."];
         }
 
         $cleanNeedle = rtrim($needle, "\n");
@@ -382,7 +691,7 @@ final class PatcherEngine
             return ['ok' => false, 'start' => 0, 'end' => 0, 'message' => "{$label} anchor not found."];
         }
 
-        $bufLines = $this->indexLines($haystack);
+        $bufLines = $this->indexLines($haystack, $lineOffset);
         $bufCount = count($bufLines);
         $matches = [];
 
@@ -400,16 +709,25 @@ final class PatcherEngine
                 $matches[] = [
                     'start' => $first['offset'],
                     'end'   => $last['offset'] + $last['len'],
+                    'line'  => $first['line'],
                 ];
             }
         }
 
-        if (count($matches) === 1) {
+        $trimCount = count($matches);
+        if ($trimCount === 1 && $matchIndex <= 1) {
             return ['ok' => true, 'start' => $matches[0]['start'], 'end' => $matches[0]['end'], 'message' => 'OK'];
         }
-        if (count($matches) > 1) {
-            $found = count($matches);
-            return ['ok' => false, 'start' => 0, 'end' => 0, 'message' => "{$label} anchor ambiguous ({$found} trimmed matches)."];
+        if ($trimCount > 1) {
+            if ($matchIndex > 0) {
+                if ($matchIndex <= $trimCount) {
+                    $chosen = $matches[$matchIndex - 1];
+                    return ['ok' => true, 'start' => $chosen['start'], 'end' => $chosen['end'], 'message' => 'OK'];
+                }
+                return ['ok' => false, 'start' => 0, 'end' => 0, 'message' => "{$label} trimmed match #{$matchIndex} out of range (only {$trimCount} matches)."];
+            }
+            $preview = $this->formatAmbiguousMatches($matches, $bufLines);
+            return ['ok' => false, 'start' => 0, 'end' => 0, 'message' => "{$label} anchor ambiguous ({$trimCount} trimmed matches: {$preview})."];
         }
 
         $hint = $this->findClosestLineHint($bufLines, $needleLines[0]);
@@ -417,9 +735,31 @@ final class PatcherEngine
     }
 
     /**
+     * @param array<int, array{start: int, end: int, line: int}> $matches
+     * @param array<int, array{line: int, offset: int, len: int, text: string}> $bufLines
+     */
+    private function formatAmbiguousMatches(array $matches, array $bufLines): string
+    {
+        $lineMap = [];
+        foreach ($bufLines as $entry) {
+            $lineMap[$entry['line']] = trim($entry['text']);
+        }
+        $parts = [];
+        foreach (array_slice($matches, 0, 5) as $idx => $m) {
+            $ln = $m['line'];
+            $prevText = $lineMap[$ln - 1] ?? '';
+            $curText = $lineMap[$ln] ?? '';
+            $snippet = strlen($curText) > 64 ? (substr($curText, 0, 61) . '...') : $curText;
+            $ctxPrev = $prevText !== '' ? (' [after: ' . (strlen($prevText) > 36 ? (substr($prevText, 0, 33) . '...') : $prevText) . ']') : '';
+            $parts[] = '#' . ($idx + 1) . ' L' . $ln . ': ' . $snippet . $ctxPrev;
+        }
+        return implode(' | ', $parts);
+    }
+
+    /**
      * @return array<int, array{line: int, offset: int, len: int, text: string}>
      */
-    private function indexLines(string $text): array
+    private function indexLines(string $text, int $lineOffset = 0): array
     {
         $rawLines = explode("\n", $text);
         $indexed = [];
@@ -427,7 +767,7 @@ final class PatcherEngine
         foreach ($rawLines as $idx => $line) {
             $len = strlen($line);
             $indexed[] = [
-                'line'   => $idx + 1,
+                'line'   => $lineOffset + $idx + 1,
                 'offset' => $offset,
                 'len'    => $len,
                 'text'   => $line,
@@ -448,8 +788,8 @@ final class PatcherEngine
         }
 
         $bestPct = 0.0;
-        $bestLine = null;
-        foreach ($bufLines as $entry) {
+        $bestIdx = -1;
+        foreach ($bufLines as $idx => $entry) {
             $cand = trim($entry['text']);
             if ($cand === '') {
                 continue;
@@ -458,15 +798,22 @@ final class PatcherEngine
             similar_text($needle, $cand, $pct);
             if ($pct > $bestPct) {
                 $bestPct = $pct;
-                $bestLine = $entry;
+                $bestIdx = $idx;
             }
         }
 
-        if ($bestLine === null || $bestPct < 45.0) {
+        if ($bestIdx < 0 || $bestPct < 45.0) {
             return '';
         }
 
-        return ' Closest line ' . $bestLine['line'] . ': ' . trim($bestLine['text']);
+        $from = max(0, $bestIdx - 1);
+        $to = min(count($bufLines) - 1, $bestIdx + 1);
+        $ctxLines = [];
+        for ($k = $from; $k <= $to; $k++) {
+            $ctxLines[] = 'L' . $bufLines[$k]['line'] . ': ' . $bufLines[$k]['text'];
+        }
+
+        return ' Closest line ' . $bufLines[$bestIdx]['line'] . ":\n  " . implode("\n  ", $ctxLines);
     }
 
     private function rollbackSingle(string $fullPath, ?string $backupPath, bool $existed): void

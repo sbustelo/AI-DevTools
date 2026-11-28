@@ -28,13 +28,13 @@
 
 .j0ui-cat-title {
     display: block;
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: var(--ipax-1-weight-semibold);
+    font-size: 0.8125rem;
 }
 
 .j0ui-cat-pattern {
     display: block;
     font-family: var(--ipax-font-mono);
-    font-size: 11px;
+    font-size: 0.6875rem;
     color: var(--ipax-text-muted);
 }

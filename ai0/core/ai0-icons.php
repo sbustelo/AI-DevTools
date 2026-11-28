@@ -21,6 +21,7 @@ function ai0_resolve_icon(string $targetPath, array $ctx, string $role = 'dir', 
     $ai0Dir = rtrim(str_replace($bs, '/', (string) ($ctx['ai0_dir'] ?? dirname(__DIR__))), '/');
 
     $rawValue = '';
+    $isProjectRoot = false;
 
     if ($role === 'brand') {
         $rawValue = 'ai0-icn32.svg';
@@ -28,8 +29,11 @@ function ai0_resolve_icon(string $targetPath, array $ctx, string $role = 'dir', 
         $markerFile = $cleanPath . '/.ai0root.json';
         if (is_file($markerFile) && is_readable($markerFile)) {
             $decoded = json_decode((string) file_get_contents($markerFile), true);
-            if (is_array($decoded) && isset($decoded['icon']) && is_string($decoded['icon'])) {
-                $rawValue = trim($decoded['icon']);
+            if (is_array($decoded)) {
+                $isProjectRoot = !isset($decoded['is_project_root']) || $decoded['is_project_root'] !== false;
+                if (isset($decoded['icon']) && is_string($decoded['icon'])) {
+                    $rawValue = trim($decoded['icon']);
+                }
             }
         }
     }
@@ -40,18 +44,25 @@ function ai0_resolve_icon(string $targetPath, array $ctx, string $role = 'dir', 
 
     $cls = trim('j0ui-icon ' . $extraClass);
     $safeCls = htmlspecialchars($cls, ENT_QUOTES, 'UTF-8');
+    $wrapSlot = static function (string $innerHtml) use ($role, $isProjectRoot): string {
+        if ($role === 'brand') {
+            return $innerHtml;
+        }
+        $flag = $isProjectRoot ? 'true' : 'false';
+        return '<span class="j0ui-icon-slot" data-j0-project-root="' . $flag . '">' . $innerHtml . '</span>';
+    };
 
     if (str_starts_with(strtolower(ltrim($rawValue)), '<svg')) {
         return [
             'kind'  => 'svg',
             'value' => $rawValue,
             'url'   => '',
-            'html'  => '<span class="' . $safeCls . '" aria-hidden="true">' . $rawValue . '</span>',
+            'html'  => $wrapSlot('<span class="' . $safeCls . '" aria-hidden="true">' . $rawValue . '</span>'),
             'text'  => '📁',
         ];
     }
 
-    if (preg_match('/^[a-zA-Z0-9._\/-]+\.(svg|png|webp|jpg|jpeg|gif)$/i', $rawValue) === 1) {
+    if (preg_match('/^[a-zA-Z0-9._\/-]+\.(svg|png|webp|jpg|jpeg|gif)\z/i', $rawValue) === 1) {
         $url = function_exists('ai0_resolve_icon_url')
             ? ai0_resolve_icon_url($rawValue, $projectRoot, $ai0Dir)
             : null;
@@ -61,7 +72,7 @@ function ai0_resolve_icon(string $targetPath, array $ctx, string $role = 'dir', 
                 'kind'  => 'img',
                 'value' => $rawValue,
                 'url'   => $url,
-                'html'  => '<img class="' . $safeCls . '" src="' . $safeUrl . '" alt="" aria-hidden="true">',
+                'html'  => $wrapSlot('<img class="' . $safeCls . '" src="' . $safeUrl . '" alt="" aria-hidden="true">'),
                 'text'  => '📁',
             ];
         }
@@ -72,7 +83,7 @@ function ai0_resolve_icon(string $targetPath, array $ctx, string $role = 'dir', 
         'kind'  => 'emoji',
         'value' => $rawValue,
         'url'   => '',
-        'html'  => '<span class="' . $safeCls . '" aria-hidden="true">' . htmlspecialchars($rawValue, ENT_QUOTES, 'UTF-8') . '</span>',
+        'html'  => $wrapSlot('<span class="' . $safeCls . '" aria-hidden="true">' . htmlspecialchars($rawValue, ENT_QUOTES, 'UTF-8') . '</span>'),
         'text'  => $rawValue,
     ];
 }

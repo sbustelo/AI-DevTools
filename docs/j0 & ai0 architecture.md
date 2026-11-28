@@ -88,3 +88,7 @@ Every tool under `ai0/tools/*/` exposes an `index.php` entrypoint and supports t
 | `j0/src/0190-bundler/p0040-build.php` | `ai0build.php` | Compiles local modular CSS and JS bundles (`.ext` + `.min.ext`) inside any target directory via `j0_build_bundle()`. |
 
 *(UI note: `ai0/ui/` compiles its modular CSS/JS bundles into `<PROJECT_ROOT>/_j0-temp/ai0-ui/`, runs `<j0-theme-switch>` on `j0.vfs` SSR/client persistence with semantic CSS tokens, and will converge onto `IPAX-UI` once the minimal `IPAX-UI` core is finalized).*
+
+---
+
+_ai0 & j0 (AI-DevTools) v5.0.11 • 2026-11-27 • Santiago Bustelo • [Apache 2.0 / CC BY 4.0 License](../LICENSE)_

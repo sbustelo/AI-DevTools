@@ -67,6 +67,7 @@
             }
         }
     },
+	
     "context_menu": {
         "rename": {
             "icon": "✏️",
@@ -88,5 +89,56 @@
             "icon": "🗑️",
             "class": "j0ui-icon-mono"
         }
+    },
+
+    "picker_emojis": {
+        "🏠": "home / valet",
+        "🗂️": "workspace / folders",
+        "🗄️": "server / cabinet",
+        "🗃️": "archive / box",
+        "🚀": "project / launch",
+        "⚙️": "engine / core",
+        "🛠️": "tools / dev",
+        "🧪": "lab / sandbox",
+        "📦": "package / lib",
+        "🌐": "web / site",
+        "📚": "library / docs",
+        "🎨": "design / ui / css",
+        "🧩": "module / plugin",
+        "🔌": "api / integration",
+        "💾": "data / storage",
+        "🔒": "private / auth",
+        "🔑": "keys / secrets",
+        "🧰": "toolbox / utils",
+        "🧭": "routing / nav",
+        "🖼️": "assets / media",
+        "⚡": "fast / cache",
+        "🔥": "hot / active",
+        "⭐": "featured / star",
+        "🏷️": "tags / labels",
+        "🤖": "ai / agent",
+        "🧹": "cleanup / purge",
+
+		"💻": "app / frontend",
+        "📱": "mobile",
+        "🧱": "components / blocks",
+        "🏗️": "build / dist / infra",
+        "📜": "scripts / logs / license",
+        "🚧": "wip / staging",
+        "🐛": "debug / issues",
+        "🛡️": "security / guards",
+        "🔄": "sync / migrations",
+        "☁️": "cloud / deploy",
+        "🌍": "i18n / locales",
+        "🔤": "fonts / typography",
+        "📊": "stats / reports",
+        "🎬": "video / motion",
+        "🔊": "audio / sound",
+        "💼": "client / business",
+        "💡": "ideas / specs / rfc",
+        "📥": "inbox / imports",
+        "📤": "exports / releases",
+        "⏳": "temp / queue / legacy"
+		
     }
 }

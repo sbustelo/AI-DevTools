@@ -574,3 +574,7 @@ const handle = globalThis.j0.ui.draggable(wheelKnobEl, {
 
 ### 6. Floater (`j0506-floater.js`)
 Viewport-clamped floating positioning (`j0.ui.floatAt(el, x, y)`, `j0.ui.floatCloseAll()`) with global quiescence on outside clicks, `Escape`, and `ui:dismiss` bus events.
+
+---
+
+_ai0 & j0 (AI-DevTools) v5.0.11 • 2026-11-27 • Santiago Bustelo • [Apache 2.0 / CC BY 4.0 License](../LICENSE)_

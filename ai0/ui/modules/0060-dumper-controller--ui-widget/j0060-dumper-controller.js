@@ -136,6 +136,20 @@
     }
 
     document.addEventListener('dblclick', function (event) {
+        if (event.target.closest('input, button, a, [data-j0-row-menu-trigger], [data-j0-tree-toggle]')) {
+            return;
+        }
+        const fileRow = event.target.closest('[data-j0-tree-node][data-j0-node-type="file"] > .j0ui-tree-row, .j0ui-shallow-item[data-j0-node-type="file"] > .j0ui-tree-row');
+        if (fileRow) {
+            const fileNode = fileRow.closest('[data-j0-node-path]');
+            const fileRel = fileNode ? (fileNode.getAttribute('data-j0-node-path') || '') : '';
+            if (fileRel !== '') {
+                event.preventDefault();
+                event.stopPropagation();
+                emitBus('ai0:file:open-editor', { rel: fileRel });
+            }
+            return;
+        }
         const shallowDir = event.target.closest('[data-j0-shallow-dir]');
         const row = shallowDir || event.target.closest('[data-j0-tree-node][data-j0-node-type="dir"] > .j0ui-tree-row');
         if (!row) {

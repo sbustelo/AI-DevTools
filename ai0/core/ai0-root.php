@@ -119,21 +119,46 @@ function ai0_list_declared_roots(string $tempDir, string $defaultRoot = ''): arr
         $raw[] = rtrim(str_replace($bs, '/', $defaultRoot), '/');
     }
 
+    $cleanDefault = $defaultRoot !== '' ? rtrim(str_replace($bs, '/', $defaultRoot), '/') : '';
     $out = [];
+    $validRegistry = [];
+    $pruned = false;
+
     foreach (array_unique($raw) as $dir) {
         if (!is_string($dir) || !is_dir($dir)) {
+            $pruned = true;
             continue;
         }
-        $markerFile = rtrim($dir, '/') . '/.ai0root.json';
-        $data = is_file($markerFile) ? (json_decode((string) file_get_contents($markerFile), true) ?: []) : [];
-        $rawIcon = (string) ($data['icon'] ?? '🏠');
+        $cleanDir = rtrim(str_replace($bs, '/', $dir), '/');
+        $isDefault = ($cleanDefault !== '' && $cleanDir === $cleanDefault);
+        $markerFile = $cleanDir . '/.ai0root.json';
+        $data = is_file($markerFile) ? json_decode((string) file_get_contents($markerFile), true) : null;
+        $hasValidMarker = is_array($data) && (!isset($data['is_project_root']) || $data['is_project_root'] !== false);
+
+        if (!$hasValidMarker && !$isDefault) {
+            $pruned = true;
+            continue;
+        }
+
+        if ($hasValidMarker) {
+            $validRegistry[] = $cleanDir;
+        }
+
+        $safeData = is_array($data) ? $data : [];
+        $rawIcon = (string) ($safeData['icon'] ?? '🏠');
         $isAsset = preg_match('/\.(svg|png|webp|jpg|jpeg|gif)$/i', $rawIcon) === 1;
         $out[] = [
-            'path'  => $dir,
-            'label' => (string) ($data['label'] ?? basename($dir) ?: $dir),
+            'path'  => $cleanDir,
+            'label' => (string) ($safeData['label'] ?? basename($cleanDir) ?: $cleanDir),
             'icon'  => $isAsset ? '📁' : ($rawIcon !== '' ? $rawIcon : '🏠'),
         ];
     }
+
+    if ($pruned && is_file($regFile) && is_writable($regFile)) {
+        sort($validRegistry, SORT_NATURAL);
+        @file_put_contents($regFile, json_encode(array_values(array_unique($validRegistry)), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n", LOCK_EX);
+    }
+
     return $out;
 }
 

@@ -140,7 +140,7 @@ The VFS decentralizes state across clean, composable layers:
 
 `j0` is validated across real projects spanning both ends of the adoption spectrum—from single-file kernel usage to multi-target production web apps:
 
-- **[AI-DevTools (`ai0`)](https://github.com/sbustelo/AI-DevTools):** The modular developer tooling suite (`dumper`, `patcher`, `restore`, `purge`) that helped shape `j0 v2` as a standalone, zero-dependency library. Represents the lightweight entry point of the spectrum.
+- **[AI-DevTools (`ai0`)](https://bustelo.com.ar/lab/ai0):** The modular developer tooling suite (`dumper`, `patcher`, `restore`, `purge`) that helped shape `j0 v2` as a standalone, zero-dependency library. Represents the lightweight entry point of the spectrum.
 
 - **[ipax-scoring](https://github.com/sbustelo/ipax-scoring):** Uses the standalone `j0` JavaScript kernel (`j0010-kernel.js`).
 
@@ -151,3 +151,8 @@ The VFS decentralizes state across clean, composable layers:
 - **[IPAX DesignLab](https://ipax.bustelo.com.ar/designlab/):** Built on `K1` (the direct precursor to `j0`); the interactive color-contrast lab where `K1` began evolving the declarative UI patterns—Zero-ID DOM delegation, bidirectional slider binding, dropdown teleportation, window management, and local persistence—that directly gave rise to `j0`.
 
 - **[ChatCGT-74](https://www.bustelo.com.ar/apps/chatcgt/):** The oldest and least serious ancestor—an experimental proof-of-concept built on early `K1`, where scaling an app by adding independent module files to an in-memory EventBus (`K1.bus`) paired with an automatic PHP directory bundler/minifier (`k1-builder.php`) was first tested across 25+ JS modules and 10 CSS files with zero Node/NPM tooling. Dressed up as a satirical "Museum of Classic AI (1906–1974)," it puts Markov chains, Webster-Hopkins decision trees, Rosenblatt's Perceptron, ELIZA, and MYCIN to the test to expose how many modern customer-service chatbots still rely on rigid pre-1974 rules and stochastic text generation.
+
+
+---
+
+_ai0 & j0 (AI-DevTools) v5.0.11 • 2026-11-27 • Santiago Bustelo • [Apache 2.0 / CC BY 4.0 License](../LICENSE)_

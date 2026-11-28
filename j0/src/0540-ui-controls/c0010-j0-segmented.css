@@ -1,0 +1,57 @@
+/* PATH: j0/src/0540-ui-controls/c0010-j0-segmented.css */
+/* Segmented Control (Button Group with active primary state) — 100% IPAX 2 tokens */
+
+.j0-segmented {
+    display: inline-flex;
+    align-items: center;
+    background: var(--ipax-surface-tint);
+    border: var(--ipax-0-border-width) solid var(--ipax-border-line);
+    border-radius: var(--ipax-0-radius-sm);
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.j0-segment-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 24px;
+    min-width: 26px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: calc(var(--ipax-0-radius-sm) - 1px);
+    background: transparent;
+    color: var(--ipax-text-muted);
+    font-family: var(--ipax-font-ui);
+    font-size: 12px;
+    font-weight: var(--ipax-1-weight-semibold);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--ipax-0-transition) ease, color var(--ipax-0-transition) ease;
+}
+
+.j0-segment-btn:hover,
+.j0-segment-btn:focus-visible {
+    color: var(--ipax-this-ink);
+    outline: none;
+}
+
+.j0-segment-btn.j0-active,
+.j0-segment-btn[aria-pressed="true"] {
+    background: var(--ipax-1-accent);
+    color: var(--ipax-0-paper-x);
+}
+
+.j0-segment-btn.j0-active:hover,
+.j0-segment-btn[aria-pressed="true"]:hover {
+    color: var(--ipax-0-paper-x);
+    filter: brightness(1.08);
+}
+
+.j0-segment-btn .material-symbols-outlined {
+    font-size: 17px;
+    line-height: 1;
+}

@@ -356,6 +356,78 @@
         syncCollapseButton(host);
     }
 
+    function getVisibleTreeNodes(treeRoot) {
+        const result = [];
+        const walk = function (ulEl) {
+            if (!ulEl) {
+                return;
+            }
+            Array.from(ulEl.children).forEach(function (li) {
+                if (!li.hasAttribute('data-j0-tree-node')) {
+                    return;
+                }
+                if (
+                    li.getAttribute('data-j0-hidden') === 'true'
+                    || li.getAttribute('data-j0-view-hidden') === 'true'
+                    || li.getAttribute('data-j0-search-hidden') === 'true'
+                ) {
+                    return;
+                }
+                result.push(li);
+                if (li.getAttribute('data-j0-node-type') === 'dir' && li.getAttribute('data-j0-collapsed') === 'false') {
+                    walk(li.querySelector(':scope > .j0ui-tree-branch'));
+                }
+            });
+        };
+        walk(treeRoot);
+        return result;
+    }
+
+    function syncRovingTabindex(treeRoot, activeNode) {
+        if (!treeRoot) {
+            return;
+        }
+        treeRoot.querySelectorAll('.j0ui-tree-row[tabindex]').forEach(function (r) {
+            r.setAttribute('tabindex', '-1');
+        });
+        const targetNode = activeNode
+            || treeRoot.querySelector('.j0ui-tree-node--selected')
+            || getVisibleTreeNodes(treeRoot)[0]
+            || null;
+        if (targetNode) {
+            const row = targetNode.querySelector(':scope > .j0ui-tree-row');
+            if (row) {
+                row.setAttribute('tabindex', '0');
+            }
+        }
+    }
+
+    function selectAndFocusTreeNode(host, node) {
+        if (!node) {
+            return;
+        }
+        const treeRoot = host.querySelector('[data-j0-tree-root]');
+        document.querySelectorAll('.j0ui-tree-node--selected').forEach(function (el) {
+            el.classList.remove('j0ui-tree-node--selected');
+        });
+        node.classList.add('j0ui-tree-node--selected');
+        syncRovingTabindex(treeRoot, node);
+        const row = node.querySelector(':scope > .j0ui-tree-row');
+        if (row) {
+            row.focus({ preventScroll: true });
+            if (typeof row.scrollIntoView === 'function') {
+                row.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+        }
+        if (globalThis.j0 && globalThis.j0.bus && typeof globalThis.j0.bus.emit === 'function') {
+            globalThis.j0.bus.emit('j0:tree:select', {
+                path: node.getAttribute('data-j0-node-path') || '',
+                name: node.getAttribute('data-j0-node-name') || '',
+                type: node.getAttribute('data-j0-node-type') || 'file'
+            });
+        }
+    }
+
     const lastCheckedByHost = new WeakMap();
 
     document.addEventListener('click', function (event) {
@@ -394,18 +466,9 @@
         const rowSelect = event.target.closest('[data-j0-tree-select]');
         if (rowSelect) {
             const node = rowSelect.closest('[data-j0-tree-node]');
+            const host = rowSelect.closest('[data-j0-tree-host]') || document;
             if (node) {
-                document.querySelectorAll('.j0ui-tree-node--selected').forEach(function (el) {
-                    el.classList.remove('j0ui-tree-node--selected');
-                });
-                node.classList.add('j0ui-tree-node--selected');
-                if (globalThis.j0 && globalThis.j0.bus && typeof globalThis.j0.bus.emit === 'function') {
-                    globalThis.j0.bus.emit('j0:tree:select', {
-                        path: node.getAttribute('data-j0-node-path') || '',
-                        name: node.getAttribute('data-j0-node-name') || '',
-                        type: node.getAttribute('data-j0-node-type') || 'file'
-                    });
-                }
+                selectAndFocusTreeNode(host, node);
             }
             return;
         }
@@ -540,11 +603,109 @@
         ? (new URLSearchParams(globalThis.location.search).get('q') || '')
         : '';
 
+    document.addEventListener('keydown', function (event) {
+        const tag = event.target && event.target.tagName ? event.target.tagName : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+            return;
+        }
+        const treeRoot = event.target.closest ? event.target.closest('[data-j0-tree-root]') : null;
+        if (!treeRoot || treeRoot.getAttribute('data-j0-hidden') === 'true') {
+            return;
+        }
+        const host = treeRoot.closest('[data-j0-tree-host]') || document;
+        const visible = getVisibleTreeNodes(treeRoot);
+        if (visible.length === 0) {
+            return;
+        }
+
+        const currentNode = (event.target.closest && event.target.closest('[data-j0-tree-node]'))
+            || treeRoot.querySelector('.j0ui-tree-node--selected')
+            || visible[0];
+        const idx = visible.indexOf(currentNode);
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            const nextNode = idx >= 0 && idx < visible.length - 1 ? visible[idx + 1] : visible[0];
+            selectAndFocusTreeNode(host, nextNode);
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            const prevNode = idx > 0 ? visible[idx - 1] : visible[visible.length - 1];
+            selectAndFocusTreeNode(host, prevNode);
+        } else if (event.key === 'ArrowRight' && currentNode) {
+            const isDir = currentNode.getAttribute('data-j0-node-type') === 'dir';
+            const caret = currentNode.querySelector(':scope > .j0ui-tree-row [data-j0-tree-toggle]');
+            if (isDir && caret && currentNode.getAttribute('data-j0-collapsed') === 'true') {
+                event.preventDefault();
+                currentNode.setAttribute('data-j0-collapsed', 'false');
+                caret.textContent = '▾';
+                syncCollapseButton(host);
+                saveExpandedState(host);
+                selectAndFocusTreeNode(host, currentNode);
+            } else if (isDir && currentNode.getAttribute('data-j0-collapsed') === 'false') {
+                const updatedVisible = getVisibleTreeNodes(treeRoot);
+                const curIdx = updatedVisible.indexOf(currentNode);
+                const firstChild = curIdx >= 0 ? updatedVisible[curIdx + 1] : null;
+                if (firstChild && currentNode.contains(firstChild)) {
+                    event.preventDefault();
+                    selectAndFocusTreeNode(host, firstChild);
+                }
+            }
+        } else if (event.key === 'ArrowLeft' && currentNode) {
+            const isDir = currentNode.getAttribute('data-j0-node-type') === 'dir';
+            const caret = currentNode.querySelector(':scope > .j0ui-tree-row [data-j0-tree-toggle]');
+            if (isDir && caret && currentNode.getAttribute('data-j0-collapsed') === 'false') {
+                event.preventDefault();
+                currentNode.setAttribute('data-j0-collapsed', 'true');
+                caret.textContent = '▸';
+                syncCollapseButton(host);
+                saveExpandedState(host);
+                selectAndFocusTreeNode(host, currentNode);
+            } else {
+                const parentBranch = currentNode.parentElement;
+                const parentNode = parentBranch ? parentBranch.closest('[data-j0-tree-node]') : null;
+                if (parentNode && treeRoot.contains(parentNode)) {
+                    event.preventDefault();
+                    selectAndFocusTreeNode(host, parentNode);
+                }
+            }
+        } else if (event.key === 'Enter' && currentNode) {
+            const rel = currentNode.getAttribute('data-j0-node-path') || '';
+            const type = currentNode.getAttribute('data-j0-node-type') || 'file';
+            if (!rel) {
+                return;
+            }
+            event.preventDefault();
+            if (type === 'file' && globalThis.j0 && globalThis.j0.bus && typeof globalThis.j0.bus.emit === 'function') {
+                globalThis.j0.bus.emit('ai0:file:open-editor', { rel: rel });
+            } else if (type === 'dir') {
+                const row = currentNode.querySelector(':scope > .j0ui-tree-row');
+                if (row) {
+                    row.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+                }
+            }
+        } else if (event.key === ' ' && currentNode && tag !== 'BUTTON') {
+            const cb = currentNode.querySelector(':scope > .j0ui-tree-row [data-j0-tree-check]');
+            if (cb) {
+                event.preventDefault();
+                cb.checked = !cb.checked;
+                cb.indeterminate = false;
+                cb.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    });
+
     document.querySelectorAll('[data-j0-tree-host]').forEach(function (host) {
         restoreExpandedState(host);
         reconcileTree(host);
         if (bootQuery !== '') {
             applyTreeSearch(host, bootQuery);
+        }
+        const treeRoot = host.querySelector('[data-j0-tree-root]');
+        if (treeRoot) {
+            treeRoot.querySelectorAll('.j0ui-tree-row').forEach(function (r) {
+                r.setAttribute('tabindex', '-1');
+            });
+            syncRovingTabindex(treeRoot, null);
         }
     });
 })();

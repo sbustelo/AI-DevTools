@@ -44,6 +44,94 @@ final class PatcherParser
                 continue;
             }
 
+            if (preg_match('/^===\s*RESOLVE:\s*([A-Za-z0-9._-]+)\s*===\z/', $line, $rm)) {
+                $batchId = trim($rm[1]);
+                $i++;
+                $entries = [];
+                $closed = false;
+                while ($i < $total) {
+                    $trimmedLine = trim($lines[$i]);
+                    if ($trimmedLine === '=== END ===') {
+                        $closed = true;
+                        $i++;
+                        break;
+                    }
+                    if ($trimmedLine !== '') {
+                        if (preg_match('/^(.+?)\s+#(\d+)\s*->\s*(.+)\z/', $trimmedLine, $em)) {
+                            $specStr = trim($em[3]);
+                            $startMatch = 0;
+                            $endMatch = 0;
+                            if (preg_match('/start_match\s*=\s*(\d+)/i', $specStr, $sm)) {
+                                $startMatch = (int) $sm[1];
+                            }
+                            if (preg_match('/end_match\s*=\s*(\d+)/i', $specStr, $enm)) {
+                                $endMatch = (int) $enm[1];
+                            }
+                            if ($startMatch > 0 || $endMatch > 0) {
+                                $entries[] = [
+                                    'path'        => trim($em[1]),
+                                    'hunk'        => (int) $em[2],
+                                    'start_match' => $startMatch,
+                                    'end_match'   => $endMatch,
+                                ];
+                            } else {
+                                $errors[] = "RESOLVE entry missing start_match/end_match: {$trimmedLine}";
+                            }
+                        } else {
+                            $errors[] = "Invalid RESOLVE line (line " . ($i + 1) . "): {$trimmedLine}";
+                        }
+                    }
+                    $i++;
+                }
+                if (!$closed) {
+                    $errors[] = "Block RESOLVE for '{$batchId}' missing closing '=== END ==='.";
+                } elseif ($entries !== []) {
+                    $operations[] = [
+                        'type'     => 'RESOLVE',
+                        'batch_id' => $batchId,
+                        'path'     => $batchId,
+                        'entries'  => $entries,
+                    ];
+                }
+                continue;
+            }
+
+            if (preg_match('/^===\s*RETRY_HUNK:\s*([A-Za-z0-9._-]+)\s+(.+?)\s+#(\d+)\s*===\z/', $line, $rh)) {
+                $batchId = trim($rh[1]);
+                $targetPath = trim($rh[2]);
+                $hunkNum = (int) $rh[3];
+                $i++;
+                $blockLines = [];
+                $closed = false;
+                while ($i < $total) {
+                    $trimmedLine = trim($lines[$i]);
+                    if ($trimmedLine === '=== END ===') {
+                        $closed = true;
+                        $i++;
+                        break;
+                    }
+                    $blockLines[] = $lines[$i];
+                    $i++;
+                }
+                if (!$closed) {
+                    $errors[] = "Block RETRY_HUNK for '{$targetPath} #{$hunkNum}' missing closing '=== END ==='.";
+                    continue;
+                }
+                $hunks = self::parseHunks($blockLines, $targetPath, $errors);
+                if (count($hunks) !== 1) {
+                    $errors[] = "RETRY_HUNK for '{$targetPath} #{$hunkNum}' must contain exactly 1 hunk.";
+                    continue;
+                }
+                $operations[] = [
+                    'type'     => 'RETRY_HUNK',
+                    'batch_id' => $batchId,
+                    'path'     => $targetPath,
+                    'hunk'     => $hunkNum,
+                    'hunk_def' => $hunks[0],
+                ];
+                continue;
+            }
+
             if (preg_match('/^===\s*MOVE:\s*(.+?)\s*->\s*(.+?)\s*===\z/', $line, $mm)) {
                 $operations[] = [
                     'type' => 'MOVE',
@@ -210,6 +298,12 @@ final class PatcherParser
     private static function isOperationHeader(string $line): bool
     {
         if (preg_match('/^===\s*MOVE:\s*(.+?)\s*->\s*(.+?)\s*===\z/', $line) === 1) {
+            return true;
+        }
+        if (preg_match('/^===\s*RESOLVE:\s*([A-Za-z0-9._-]+)\s*===\z/', $line) === 1) {
+            return true;
+        }
+        if (preg_match('/^===\s*RETRY_HUNK:\s*([A-Za-z0-9._-]+)\s+(.+?)\s+#(\d+)\s*===\z/', $line) === 1) {
             return true;
         }
         return preg_match('/^===\s*(PATCH|CREATE|DISABLE|DISCARD|DUMP|TREE):\s*(.+?)\s*===\z/', $line) === 1;

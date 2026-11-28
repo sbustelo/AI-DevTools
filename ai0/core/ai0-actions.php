@@ -166,7 +166,12 @@ function ai0_discover_actions(array $ctx, ?array $targetInfo = null): array
                 'confirm'    => $meta['confirm'] ?? null,
                 'submenu'    => isset($meta['submenu']) && is_array($meta['submenu']) ? $meta['submenu'] : null,
                 'applies_to' => $applies,
-                'run'        => $spec['run'] ?? null,
+                'multi'             => !empty($meta['multi']),
+                'prune_descendants' => !empty($meta['prune_descendants']),
+                'confirm_multi'     => $meta['confirm_multi'] ?? null,
+                'match'             => $spec['match'] ?? null,
+                'run'               => $spec['run'] ?? null,
+                'run_batch'         => $spec['run_batch'] ?? null,
             ];
         }
     }
@@ -183,6 +188,8 @@ function ai0_discover_actions(array $ctx, ?array $targetInfo = null): array
  * @param array<string, mixed> $params
  * @return array<string, mixed>
  */
+require_once __DIR__ . '/ai0-actions-batch.php';
+
 function ai0_run_action(string $actionId, array $ctx, array $targetInfo, array $params = []): array
 {
     foreach (ai0_discover_actions($ctx, $targetInfo) as $item) {

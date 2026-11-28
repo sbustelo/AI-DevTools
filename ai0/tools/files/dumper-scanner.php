@@ -39,6 +39,42 @@ final class DumperScanner
     }
 
     /**
+     * Resolves the effective dumper category (own or inherited) for a single target path.
+     *
+     * @param array<string, mixed> $config
+     */
+    public static function classifyPath(string $targetAbs, string $baseRoot, array $config): string
+    {
+        $cleanBase = rtrim($baseRoot, '/');
+        if ($targetAbs === $cleanBase || !str_starts_with($targetAbs, $cleanBase . '/')) {
+            return 'none';
+        }
+        $categories = is_array($config['categories'] ?? null) ? $config['categories'] : [];
+        $prefixCfg = is_array($config['prefixes'] ?? null) ? $config['prefixes'] : [];
+        $j0Pragmas = is_array($config['j0_pragmas'] ?? null) ? $config['j0_pragmas'] : [];
+
+        $rel = substr($targetAbs, strlen($cleanBase) + 1);
+        $parts = explode('/', $rel);
+        $cursorDir = $cleanBase;
+        $inherited = null;
+
+        foreach ($parts as $part) {
+            if ($part === '') {
+                continue;
+            }
+            $rawSiblings = @scandir($cursorDir);
+            $siblings = is_array($rawSiblings) ? array_values(array_diff($rawSiblings, ['.', '..'])) : [];
+            $own = self::classifyItem($part, $cursorDir, $siblings, $categories, $prefixCfg, $j0Pragmas);
+            if ($own !== null) {
+                $inherited = $own;
+            }
+            $cursorDir .= '/' . $part;
+        }
+
+        return $inherited ?? 'none';
+    }
+
+    /**
      * @param array<string, mixed> $config
      * @param array<string, int> $counts
      * @param array{total: int, included: int} $stats

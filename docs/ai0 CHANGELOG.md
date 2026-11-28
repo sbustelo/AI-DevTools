@@ -4,7 +4,18 @@ All notable changes to **AI-DevTools** (`ai0` and `AI-PerkeleProtocols`) are doc
 
 ---
 
-## 5.0.10 • 27/nov/2026
+## 5.0.11 • 27/nov/2026
+
+- **Column Navigation (Miller Columns):** Browse folders side-by-side macOS Finder style and switch between Tree and Column views anytime without losing your place. Keyboard navigation is supported.
+- **Folder Colors That Show Hierarchy:** Tag folders with 8 colors tuned for both Light and Dark modes. Open folders visually contain their children—both in Tree View and across Miller Columns, making project structure obvious at a glance. The color menu now shows actual swatches; the selected item stands out over any color.
+- **Direct Entry & Settings Panel (Gear Icon):** Opening `ai0` now takes you straight to `Files`. Environment controls (`Rebuild UI`, `DEBUG` mode) moved into a dedicated Settings view alongside new **Appearance & Typography** controls: interface / file listing fonts, size and weight, synced between browser and disk.
+- **Staged Patch Recovery (`RETRY_HUNK` / `RESOLVE`):** When a single hunk fails to match inside a multi-file batch, `patcher` stages the intact changes so you only retry the failing hunk—without re-emitting the whole patch or burning tokens. Updated `AI-PerkeleProtocols/ai0-perkele-architect.en.md` to `v4.1.11` to match.
+- **Consolidated Portable Stubs:** `ai0view.php` stub, alongside `ai0patch.php` and `ai0build.php`.
+- **Customization Guide:** Added [`docs/customizing.md`](customizing.md).
+
+---
+
+## 5.0.10 • 26/nov/2026
 
 - **Unified `Files` Workspace (`View` Inspector + `Dump` + `Purge` + `Restore`):**
   - Evolved `dumper` into **`Files`** (`ai0/tools/files/`), a full-viewport (`100dvh`) desktop-style browser with a resizable splitter, persistent VFS tab/tree state, and 4 integrated right-pane tools: **`View`** (Finder-style inspector with metadata, permissions lock, inline rename, preview, and `↩ Container` reset), **`Dump`**, **`Purge`** (with header-aligned `Delete selected items (N)` CTA), and **`Restore`**.
@@ -111,3 +122,9 @@ All notable changes to **AI-DevTools** (`ai0` and `AI-PerkeleProtocols`) are doc
 - **2025-10-21:** Expanded `AI-First-Directive` to `v2.109` and `v2.111` in Spanish and English with dedicated documentation.
 - **2025-08-22 to 2025-08-23:** Added continuity summary rule, Jef Raskin's Three Laws of Interaction Design adapted to AI-Human interaction, and stability principles.
 - **2025-08-21:** Initial release of **AI-DevTools** with `project-dumper/_project-dump.php` (v1.0) and `AI-First-Directive`.
+
+
+
+---
+
+_ai0 & j0 (AI-DevTools) v5.0.11 • 2026-11-27 • Santiago Bustelo • [Apache 2.0 / CC BY 4.0 License](../LICENSE)_

@@ -77,7 +77,7 @@ if ($selectedUnit !== '' && in_array($selectedUnit, $units, true)) {
 }
 
 $rootQuery = ($activeRoot !== $defaultRoot) ? ('?root=' . rawurlencode($activeRoot)) : '';
-$patcherUrl = ai0_ui_web_base($ctx) . '../tools/patcher/index.php' . $rootQuery;
+$patcherUrl = ai0_url($ctx, 'tools/patcher/index.php') . $rootQuery;
 
 ai0_render_head('ai0 // i18n-batch', $ctx, 'i18n-batch', $debug);
 i18n_batch_render_view([

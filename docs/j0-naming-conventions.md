@@ -79,3 +79,7 @@ A module directory may contain `.js`, `.css`, `.html`, `.php`, `.md`, and nested
 ### Format & Security Invariant
 - **Sensitive Configs (`.php` with Execution Guard):** Credentials, API keys, FTP logins, and tokens MUST be stored in `.php` files guarded by `if (!defined('J0_EXEC')) { exit; }` returning an associative array, preventing plain-text exposure over HTTP.
 - **Declarative Configs (`.json`):** Non-sensitive taxonomies, regex rules, and UI flags use `.json` so both PHP and JavaScript can consume them directly.
+
+---
+
+_ai0 & j0 (AI-DevTools) v5.0.11 • 2026-11-27 • Santiago Bustelo • [Apache 2.0 / CC BY 4.0 License](../LICENSE)_

@@ -351,7 +351,7 @@ dumper_render_view([
     'browseRoot'      => $browseRoot,
     'canRevealFinder' => PHP_OS_FAMILY === 'Darwin',
     'icons'           => $iconsCfg,
-    'apiUrl'          => ai0_ui_web_base($ctx) . '../tools/files/api.php',
+    'apiUrl'          => ai0_url($ctx, 'tools/files/api.php'),
     'tempDir'         => (string) ($ctx['temp_dir'] ?? ''),
     'defaultRoot'     => $defaultRoot,
     'isShallowMode'   => $isShallowMode,

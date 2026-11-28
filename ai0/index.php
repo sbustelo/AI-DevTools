@@ -15,6 +15,19 @@ $stubConfig = [
 (static function (string $startDir, array $cfg): void {
     $bs = chr(92);
     $origin = rtrim(str_replace($bs, '/', $startDir), '/');
+    $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim(str_replace($bs, '/', (string) $_SERVER['DOCUMENT_ROOT']), '/') : '';
+    $scriptName = isset($_SERVER['SCRIPT_NAME']) ? str_replace($bs, '/', (string) $_SERVER['SCRIPT_NAME']) : '';
+    if ($docRoot !== '' && $scriptName !== '' && is_dir($docRoot)) {
+        $lexCandidate = $docRoot . '/' . ltrim($scriptName, '/');
+        if (@is_file($lexCandidate)) {
+            $realLex = @realpath($lexCandidate);
+            $realSelf = @realpath(__FILE__);
+            if ($realLex !== false && $realSelf !== false && $realLex === $realSelf) {
+                $origin = rtrim(dirname($lexCandidate), '/') ?: '/';
+            }
+        }
+    }
+    $realOrigin = @realpath($origin);
     $routeFile = $origin . '/.j0route.php';
     $routes = [];
 
@@ -66,7 +79,9 @@ $stubConfig = [
             $candidate = $cursor . '/' . $relTarget;
             if (@is_file($candidate)) {
                 $hubEngineDir = rtrim(str_replace($bs, '/', dirname($candidate, 2)), '/');
-                $isSelfEngine = ($origin === $hubEngineDir);
+                $realHubEngine = @realpath($hubEngineDir);
+                $isSelfEngine = ($origin === $hubEngineDir)
+                    || ($realOrigin !== false && $realHubEngine !== false && $realOrigin === $realHubEngine);
 
                 if (!$isSelfEngine && is_writable($origin)) {
                     $routes['__ai0_hub__'] = $candidate;

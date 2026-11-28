@@ -13,6 +13,9 @@ if (!defined('J0_DIR')) {
 require_once J0_DIR . '/core/j0-use.php';
 require_once J0_DIR . '/core/j0-locate.php';
 j0_use('core');
+if (function_exists('j0_auto_bind_core_mounts')) {
+    j0_auto_bind_core_mounts();
+}
 
 if (!function_exists('j0_api')) {
     /**

@@ -65,7 +65,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
         if ($rootMismatch === null && $parseErrors === []) {
             if ($parsed['operations'] !== []) {
-                $engine = new PatcherEngine($projectRoot);
+                $engine = new PatcherEngine($projectRoot, null, (string) ($ctx['temp_dir'] ?? ''));
                 $execResult = $action === 'dry_run'
                     ? $engine->dryRun($parsed['operations'])
                     : $engine->execute($parsed['operations']);

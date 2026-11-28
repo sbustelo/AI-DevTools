@@ -69,7 +69,9 @@ if (!function_exists('j0_asset_tags')) {
         foreach ($files as $file) {
             $sigEntries[] = $file . '|' . (int) @filemtime($file) . '|' . (int) @filesize($file);
         }
-        $currentSig = sha1(implode("\n", $sigEntries));
+        $inputsHash = sha1(implode("\n", $sigEntries));
+        $minStat = is_file($minOut) ? ((int) @filemtime($minOut) . ':' . (int) @filesize($minOut)) : 'missing';
+        $currentSig = $inputsHash . '@' . $minStat;
         $cachedSig = is_file($sigFile) ? trim((string) @file_get_contents($sigFile)) : '';
 
         $canWrite = is_dir(dirname($minOut)) ? is_writable(dirname($minOut)) : is_writable(dirname($minOut, 2));
@@ -92,7 +94,9 @@ if (!function_exists('j0_asset_tags')) {
                     'exclude'  => $excludePaths,
                 ], $buildOptions));
                 if (!empty($buildRes['ok'])) {
-                    @file_put_contents($sigFile, $currentSig . "\n", LOCK_EX);
+                    clearstatcache(true, $minOut);
+                    $builtStat = is_file($minOut) ? ((int) @filemtime($minOut) . ':' . (int) @filesize($minOut)) : 'missing';
+                    @file_put_contents($sigFile, $inputsHash . '@' . $builtStat . "\n", LOCK_EX);
                 }
             }
         }
@@ -105,32 +109,17 @@ if (!function_exists('j0_asset_tags')) {
                 : "<script src=\"{$href}\"></script>";
         }
 
-        $outDir = rtrim(str_replace($bs, '/', dirname($outClean)), '/');
-        $j0Real = defined('J0_DIR') ? rtrim(str_replace($bs, '/', (string) J0_DIR), '/') : str_replace($bs, '/', dirname(__DIR__, 2));
-        $j0Alias = null;
-        $cursor = $outDir;
-        for ($lvl = 0; $lvl <= 8; $lvl++) {
-            foreach (['j0', '_j0', 'ai0/j0', '_ai0/j0'] as $candAlias) {
-                if (is_dir($cursor . '/' . $candAlias)) {
-                    $j0Alias = $cursor . '/' . $candAlias;
-                    break 2;
-                }
-            }
-            $parent = dirname($cursor);
-            if ($parent === $cursor) {
-                break;
-            }
-            $cursor = $parent;
-        }
+        $outDir = function_exists('j0_logical_path')
+            ? j0_logical_path(dirname($outClean))
+            : rtrim(str_replace($bs, '/', dirname($outClean)), '/');
 
         $tags = [];
         foreach ($files as $absFile) {
-            $normFile = str_replace($bs, '/', $absFile);
-            if ($j0Alias !== null && str_starts_with($normFile, $j0Real . '/')) {
-                $normFile = $j0Alias . substr($normFile, strlen($j0Real));
-            }
+            $normFile = function_exists('j0_logical_path')
+                ? j0_logical_path($absFile)
+                : str_replace($bs, '/', $absFile);
 
-            if (str_starts_with($webPrefix, '/') && function_exists('j0_path_to_web_url')) {
+            if (function_exists('j0_path_to_web_url')) {
                 $mappedUrl = j0_path_to_web_url($normFile);
                 if ($mappedUrl !== null) {
                     $ver = (int) @filemtime($absFile);

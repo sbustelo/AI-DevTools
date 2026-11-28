@@ -67,7 +67,13 @@ function patcher_render_view(array $vm): void
             foreach ($execResult['errors'] as $e) {
                 $summaryLines[] = "{$icoErrItem} {$e['path']}: {$e['reason']}";
             }
-            $summaryLines[] = 'Regenerate only the failed blocks with exact START/END anchors.';
+            if (!empty($execResult['staged_batch'])) {
+                $stagedList = is_array($execResult['staged_files'] ?? null) ? implode(', ', $execResult['staged_files']) : '';
+                $summaryLines[] = '⏸️ STAGED: ' . $execResult['staged_batch'] . ($stagedList !== '' ? " ({$stagedList})" : '');
+                $summaryLines[] = 'Recover without re-emitting intact hunks using === RESOLVE: ' . $execResult['staged_batch'] . ' === or === RETRY_HUNK: ' . $execResult['staged_batch'] . ' <file> #<n> ===.';
+            } else {
+                $summaryLines[] = 'Regenerate only the failed blocks with exact START/END anchors.';
+            }
         }
 
         if ($hasWarn) {

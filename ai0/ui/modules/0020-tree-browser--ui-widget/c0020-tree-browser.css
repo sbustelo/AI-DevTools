@@ -33,9 +33,9 @@
     flex: 1 1 auto;
     min-width: 0;
     max-width: 100%;
-    padding: 4px 8px;
+    padding: 0.25rem 0.5rem;
     font-family: var(--j0ui-font-mono);
-    font-size: 12px;
+    font-size: 0.75rem;
 }
 
 .j0ui-toolbar-icons {
@@ -45,20 +45,10 @@
     flex-shrink: 0;
 }
 
-.j0ui-btn--icon {
-    padding: 4px 7px;
-    min-width: 28px;
-    height: 28px;
-    font-size: 13px;
-    line-height: 1;
-}
-
 .j0ui-btn--toolbar-text {
-    padding: 4px 8px;
-    height: 28px;
-    font-size: 12px;
-    line-height: 1;
-    white-space: nowrap;
+    --j0ui-btn-h: 1.75rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
 }
 
 .j0ui-tree-toolbar-title {
@@ -108,6 +98,11 @@
     background: color-mix(in srgb, var(--ipax-this-ink) 7%, transparent);
 }
 
+.j0ui-tree-row:focus-visible {
+    outline: var(--ipax-0-border-width) solid var(--ipax-1-accent);
+    outline-offset: -1px;
+}
+
 .j0ui-tree-caret {
     width: 16px;
     border: none;
@@ -131,8 +126,8 @@
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
-    font-family: var(--j0ui-font-mono);
-    font-size: 12px;
+    font-family: var(--ai0-font-listing);
+    font-size: 0.75rem;
     cursor: pointer;
 }
 
@@ -148,43 +143,7 @@
     border-radius: var(--j0ui-radius-sm);
 }
 
-/* macOS Classic cascading folder color labels (opaque mix against surface — no alpha stacking) */
-[data-j0-label-color="red"]    { --fslabel-active: var(--fslabel-red); }
-[data-j0-label-color="orange"] { --fslabel-active: var(--fslabel-orange); }
-[data-j0-label-color="yellow"] { --fslabel-active: var(--fslabel-yellow); }
-[data-j0-label-color="green"]  { --fslabel-active: var(--fslabel-green); }
-[data-j0-label-color="blue"]   { --fslabel-active: var(--fslabel-blue); }
-[data-j0-label-color="violet"] { --fslabel-active: var(--fslabel-violet); }
-[data-j0-label-color="brown"]  { --fslabel-active: var(--fslabel-brown); }
-[data-j0-label-color="black"]  { --fslabel-active: var(--fslabel-black); }
-
-.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row {
-    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-row-tint), var(--j0ui-bg-window));
-}
-
-.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row:hover {
-    background: color-mix(in srgb, var(--j0ui-text-main) 8%, color-mix(in srgb, var(--fslabel-active) var(--fslabel-row-tint), var(--j0ui-bg-window)));
-}
-
-.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-branch {
-    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-child-tint), var(--j0ui-bg-window));
-    border-radius: var(--j0ui-radius-sm);
-}
-
-.j0ui-tree-node[data-j0-label-color][data-j0-collapsed="false"]:hover > .j0ui-tree-branch {
-    background: color-mix(in srgb, var(--j0ui-text-main) 5%, color-mix(in srgb, var(--fslabel-active) var(--fslabel-child-tint), var(--j0ui-bg-window)));
-}
-
-[data-j0-root-pane][data-j0-label-color] .j0ui-tree-toolbar {
-    border-color: color-mix(in srgb, var(--fslabel-active) 52%, var(--j0ui-border-subtle));
-    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-row-tint), var(--j0ui-bg-window));
-}
-
-[data-j0-root-pane][data-j0-label-color] .j0ui-tree-root {
-    background: color-mix(in srgb, var(--fslabel-active) var(--fslabel-child-tint), var(--j0ui-bg-window));
-    border-radius: var(--j0ui-radius-sm);
-    padding: 4px;
-}
+/* Folder color label rules centralized in 0026-fslabels--ui-widget/c0026-fslabels.css */
 
 .j0ui-tree-node[data-j0-excluded="true"] > .j0ui-tree-row .j0ui-tree-label {
     color: var(--j0ui-text-muted);

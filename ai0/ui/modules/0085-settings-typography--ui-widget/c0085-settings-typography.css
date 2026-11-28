@@ -1,0 +1,61 @@
+/* PATH: ai0/ui/modules/0085-settings-typography--ui-widget/c0085-settings-typography.css */
+.j0ui-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--j0ui-space-sm);
+    margin-top: 10px;
+}
+
+@media (max-width: 720px) {
+    .j0ui-settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.j0ui-settings-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8125rem;
+    font-weight: var(--ipax-1-weight-semibold);
+}
+
+.j0ui-font-combo {
+    position: relative;
+}
+
+.j0ui-font-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    max-height: 240px;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    background: var(--j0ui-bg-window);
+    border: 1px solid var(--j0ui-border-subtle);
+    border-radius: var(--j0ui-radius-sm);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--ipax-0-ink-x) var(--ipax-0-shadow-pct), transparent);
+    z-index: var(--ipax-z-dropdown);
+}
+
+.j0ui-font-menu[data-j0-hidden="true"] {
+    display: none;
+}
+
+.j0ui-font-menu-title {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    font-weight: var(--ipax-1-weight-semibold);
+    color: var(--j0ui-text-muted);
+    text-transform: uppercase;
+}
+
+.j0ui-range {
+    width: 100%;
+    accent-color: var(--ipax-1-accent);
+    cursor: pointer;
+}

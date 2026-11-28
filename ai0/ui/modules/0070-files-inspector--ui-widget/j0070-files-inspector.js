@@ -60,6 +60,12 @@
         const mtimeEl = hostEl.querySelector('[data-j0-insp-mtime]');
         const itemsRowEl = hostEl.querySelector('[data-j0-insp-items-row]');
         const itemsEl = hostEl.querySelector('[data-j0-insp-items]');
+        const catRowEl = hostEl.querySelector('[data-j0-insp-cat-row]');
+        const catValEl = hostEl.querySelector('[data-j0-insp-cat-val]');
+        const catBadgeEl = hostEl.querySelector('[data-j0-insp-cat-badge]');
+        const rootRowEl = hostEl.querySelector('[data-j0-insp-root-row]');
+        const rootValEl = hostEl.querySelector('[data-j0-insp-root-val]');
+        const rootToggleEl = hostEl.querySelector('[data-j0-insp-root-toggle]');
         const permOwnerEl = hostEl.querySelector('[data-j0-perm="owner"]');
         const permGroupEl = hostEl.querySelector('[data-j0-perm="group"]');
         const permEveryoneEl = hostEl.querySelector('[data-j0-perm="everyone"]');
@@ -118,6 +124,7 @@
                 backRootBtnEl.setAttribute('data-j0-hidden', data.is_root_dir ? 'true' : 'false');
             }
             if (bigIconEl) {
+                bigIconEl.setAttribute('data-j0-project-root', (isDirEditable && data.is_project_root) ? 'true' : 'false');
                 while (bigIconEl.firstChild) {
                     bigIconEl.removeChild(bigIconEl.firstChild);
                 }
@@ -136,7 +143,7 @@
                 nameTextEl.textContent = data.name || '/';
             }
             if (kindEl) {
-                kindEl.textContent = data.type === 'dir' ? 'Folder' : 'File';
+                kindEl.textContent = data.is_symlink ? 'Symlink' : (data.type === 'dir' ? 'Folder' : 'File');
             }
             if (pathEl) {
                 while (pathEl.firstChild) {
@@ -182,6 +189,18 @@
                 itemsEl.setAttribute('data-j0-hidden', isDir ? 'false' : 'true');
                 itemsEl.textContent = String(data.direct_items || 0);
             }
+            if (catRowEl && catValEl && catBadgeEl) {
+                const hasCat = Boolean(data.cat && data.cat !== 'none');
+                catRowEl.setAttribute('data-j0-hidden', hasCat ? 'false' : 'true');
+                catValEl.setAttribute('data-j0-hidden', hasCat ? 'false' : 'true');
+                catBadgeEl.textContent = hasCat ? (data.cat_label || data.cat) : '';
+            }
+            if (rootRowEl && rootValEl && rootToggleEl) {
+                const isDir = data.type === 'dir';
+                rootRowEl.setAttribute('data-j0-hidden', isDir ? 'false' : 'true');
+                rootValEl.setAttribute('data-j0-hidden', isDir ? 'false' : 'true');
+                rootToggleEl.checked = Boolean(data.is_project_root);
+            }
             if (data.permissions) {
                 if (permOwnerEl) permOwnerEl.value = data.permissions.owner || 'rw';
                 if (permGroupEl) permGroupEl.value = data.permissions.group || 'r';
@@ -221,6 +240,9 @@
                 el.classList.remove('j0ui-tree-node--selected');
             });
             loadItem('');
+            if (root.j0 && root.j0.bus && typeof root.j0.bus.emit === 'function') {
+                root.j0.bus.emit('j0:tree:select', { path: '', name: '', type: 'dir', source: 'inspector' });
+            }
         }
 
         hostEl.addEventListener('click', async function (event) {
@@ -302,6 +324,9 @@
 
         if (root.j0 && root.j0.bus && typeof root.j0.bus.on === 'function') {
             root.j0.bus.on('j0:tree:select', function (payload) {
+                if (payload && payload.source === 'inspector') {
+                    return;
+                }
                 loadItem(payload && typeof payload.path === 'string' ? payload.path : '');
             });
             root.j0.bus.on('ai0:icon-picker:selected', async function (payload) {
@@ -339,6 +364,54 @@
                 return;
             }
             returnToContainer();
+        });
+
+        hostEl.addEventListener('change', async function (event) {
+            const toggle = event.target.closest('[data-j0-insp-root-toggle]');
+            if (!toggle || !currentData || currentData.type !== 'dir') {
+                return;
+            }
+            const nextState = toggle.checked;
+            const res = await apiCall({ op: 'update_attr', field: 'is_project_root', value: nextState });
+            if (!res || !res.ok) {
+                toggle.checked = !nextState;
+                setStatus((res && res.message) || 'Failed to update Project Root.', true);
+                return;
+            }
+            currentData.is_project_root = nextState;
+            const flag = nextState ? 'true' : 'false';
+            if (bigIconEl) {
+                bigIconEl.setAttribute('data-j0-project-root', flag);
+            }
+            if (currentRel === '') {
+                const rootSlot = document.querySelector('[data-j0-dropdown-trigger="ai0-files-root"] .j0ui-icon-slot');
+                if (rootSlot) {
+                    rootSlot.setAttribute('data-j0-project-root', flag);
+                }
+            } else {
+                document.querySelectorAll('[data-j0-tree-root] [data-j0-tree-node], .j0ui-shallow-item').forEach(function (n) {
+                    if ((n.getAttribute('data-j0-node-path') || '') === currentRel) {
+                        const slot = n.querySelector(':scope > .j0ui-tree-row .j0ui-icon-slot');
+                        if (slot) {
+                            slot.setAttribute('data-j0-project-root', flag);
+                        }
+                    }
+                });
+            }
+            if (res.abs_path) {
+                document.querySelectorAll('[data-j0-dropdown-menu="ai0-files-root"] [data-j0-dropdown-option]').forEach(function (opt) {
+                    if ((opt.getAttribute('data-j0-value') || '') === res.abs_path) {
+                        const slot = opt.querySelector('.j0ui-icon-slot');
+                        if (slot) {
+                            slot.setAttribute('data-j0-project-root', flag);
+                        }
+                    }
+                });
+            }
+            setStatus(res.message || '', false);
+            if (root.j0 && root.j0.bus && typeof root.j0.bus.emit === 'function') {
+                root.j0.bus.emit('ai0:tree:visual-changed', { kind: 'project-root', rel: currentRel, value: nextState });
+            }
         });
 
         loadItem('');

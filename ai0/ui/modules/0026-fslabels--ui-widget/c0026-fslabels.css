@@ -1,0 +1,230 @@
+/* PATH: ai0/ui/modules/0026-fslabels--ui-widget/c0026-fslabels.css */
+/* Centralized Folder Color Labels — IPAX Triad Model (pure / -p / -i) + macOS bullet + 45deg menu swatches */
+
+/* ==========================================================================
+   1. TOKENS (all palette triads & mix ratios in one place)
+   ========================================================================== */
+:root {
+    /* ─── 8 OKLCH TRIADS ───
+       base : pure brand tone (bullet dot, child tint in Dark, child border)
+       -p   : pastel surface  (accessible under --ipax-0-ink-x in Light)
+       -i   : deep surface    (accessible under --ipax-0-paper-x in Dark) */
+    --fslabel-red:      oklch(0.63 0.22 22);
+    --fslabel-red-p:    oklch(0.84 0.11 20);
+    --fslabel-red-i:    oklch(0.45 0.18 20);
+
+    --fslabel-orange:   oklch(0.71 0.19 52);
+    --fslabel-orange-p: oklch(0.85 0.13 58);
+    --fslabel-orange-i: oklch(0.52 0.16 55);
+
+    --fslabel-yellow:   oklch(0.84 0.18 95);
+    --fslabel-yellow-p: oklch(0.93 0.14 98);
+    --fslabel-yellow-i: oklch(0.54 0.12 96);
+
+    --fslabel-green:    oklch(0.68 0.19 145);
+    --fslabel-green-p:  oklch(0.88 0.12 145);
+    --fslabel-green-i:  oklch(0.44 0.14 145);
+
+    --fslabel-blue:     oklch(0.62 0.19 250);
+    --fslabel-blue-p:   oklch(0.86 0.10 245);
+    --fslabel-blue-i:   oklch(0.44 0.16 250);
+
+    --fslabel-violet:   oklch(0.64 0.21 305);
+    --fslabel-violet-p: oklch(0.86 0.11 305);
+    --fslabel-violet-i: oklch(0.43 0.17 305);
+
+    --fslabel-brown:    oklch(0.56 0.09 45);
+    --fslabel-brown-p:  oklch(0.81 0.05 45);
+    --fslabel-brown-i:  oklch(0.35 0.06 42);
+
+    --fslabel-black:    oklch(0.62 0 0);
+    --fslabel-black-p:  oklch(0.86 0 0);
+    --fslabel-black-i:  oklch(0.38 0 0);
+
+    /* ─── DARK MODE MIXING DEFAULTS ─── */
+    --fslabel-fg: var(--ipax-0-paper-x);
+    --fslabel-hover-target: var(--ipax-0-paper-x);
+    --fslabel-hover-pct: 12%;
+    --fslabel-child-tint: 26%;
+    --fslabel-child-hover-pct: 6%;
+    --fslabel-child-border-pct: 52%;
+    --fslabel-dot-border-pct: 32%;
+    --fslabel-frame-w: 1px;
+    --fslabel-frame-pct: 48%;
+    --fslabel-spine-w: 3px;
+}
+
+html[data-ipax-theme~="light"] {
+    /* ─── LIGHT MODE MIXING OVERRIDES ─── */
+    --fslabel-fg: var(--ipax-0-ink-x);
+    --fslabel-hover-target: var(--ipax-0-ink-x);
+    --fslabel-hover-pct: 8%;
+    --fslabel-child-tint: 34%;
+    --fslabel-child-hover-pct: 5%;
+    --fslabel-child-border-pct: 48%;
+    --fslabel-dot-border-pct: 24%;
+}
+
+/* ==========================================================================
+   2. COMBINATION & APPLICATION RULES
+   ========================================================================== */
+
+/* ─── ACTIVE TRIAD BINDING (Dark: row=-i, dot=base, child-source=base) ─── */
+[data-j0-label-color="red"]    { --fslabel-bg: var(--fslabel-red-i);    --fslabel-dot: var(--fslabel-red);    --fslabel-child-src: var(--fslabel-red); }
+[data-j0-label-color="orange"] { --fslabel-bg: var(--fslabel-orange-i); --fslabel-dot: var(--fslabel-orange); --fslabel-child-src: var(--fslabel-orange); }
+[data-j0-label-color="yellow"] { --fslabel-bg: var(--fslabel-yellow-i); --fslabel-dot: var(--fslabel-yellow); --fslabel-child-src: var(--fslabel-yellow); }
+[data-j0-label-color="green"]  { --fslabel-bg: var(--fslabel-green-i);  --fslabel-dot: var(--fslabel-green);  --fslabel-child-src: var(--fslabel-green); }
+[data-j0-label-color="blue"]   { --fslabel-bg: var(--fslabel-blue-i);   --fslabel-dot: var(--fslabel-blue);   --fslabel-child-src: var(--fslabel-blue); }
+[data-j0-label-color="violet"] { --fslabel-bg: var(--fslabel-violet-i); --fslabel-dot: var(--fslabel-violet); --fslabel-child-src: var(--fslabel-violet); }
+[data-j0-label-color="brown"]  { --fslabel-bg: var(--fslabel-brown-i);  --fslabel-dot: var(--fslabel-brown);  --fslabel-child-src: var(--fslabel-brown); }
+[data-j0-label-color="black"]  { --fslabel-bg: var(--fslabel-black-i);  --fslabel-dot: var(--fslabel-black);  --fslabel-child-src: var(--fslabel-black); }
+
+/* ─── ACTIVE TRIAD BINDING (Light: row=-p, dot=base, child-source=-p) ─── */
+html[data-ipax-theme~="light"] [data-j0-label-color="red"]    { --fslabel-bg: var(--fslabel-red-p);    --fslabel-child-src: var(--fslabel-red-p); }
+html[data-ipax-theme~="light"] [data-j0-label-color="orange"] { --fslabel-bg: var(--fslabel-orange-p); --fslabel-child-src: var(--fslabel-orange-p); }
+html[data-ipax-theme~="light"] [data-j0-label-color="yellow"] { --fslabel-bg: var(--fslabel-yellow-p); --fslabel-child-src: var(--fslabel-yellow-p); }
+html[data-ipax-theme~="light"] [data-j0-label-color="green"]  { --fslabel-bg: var(--fslabel-green-p);  --fslabel-child-src: var(--fslabel-green-p); }
+html[data-ipax-theme~="light"] [data-j0-label-color="blue"]   { --fslabel-bg: var(--fslabel-blue-p);   --fslabel-child-src: var(--fslabel-blue-p); }
+html[data-ipax-theme~="light"] [data-j0-label-color="violet"] { --fslabel-bg: var(--fslabel-violet-p); --fslabel-child-src: var(--fslabel-violet-p); }
+html[data-ipax-theme~="light"] [data-j0-label-color="brown"]  { --fslabel-bg: var(--fslabel-brown-p);  --fslabel-child-src: var(--fslabel-brown-p); }
+html[data-ipax-theme~="light"] [data-j0-label-color="black"]  { --fslabel-bg: var(--fslabel-black-p);  --fslabel-child-src: var(--fslabel-black-p); }
+
+/* ─── TREE VIEW: LABELED ROWS, BULLET & CHILD BRANCHES ─── */
+.j0ui-tree-node[data-j0-label-color] {
+    border: var(--fslabel-frame-w) solid transparent;
+    border-left: var(--fslabel-spine-w) solid var(--fslabel-dot);
+    border-radius: var(--ipax-0-radius-sm);
+    overflow: hidden;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row {
+    background: var(--fslabel-bg);
+    color: var(--fslabel-fg);
+    border-radius: 0;
+}
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row .j0ui-tree-caret,
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row .j0ui-row-menu-trigger {
+    color: var(--fslabel-fg);
+}
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row:hover {
+    background: color-mix(in oklch, var(--fslabel-hover-target) var(--fslabel-hover-pct), var(--fslabel-bg));
+}
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-row::after,
+.j0ui-miller-row[data-j0-label-color]::after {
+    content: "";
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: var(--ipax-0-radius-pill);
+    background: var(--fslabel-dot);
+    border: 1px solid color-mix(in oklch, var(--fslabel-fg) var(--fslabel-dot-border-pct), transparent);
+    flex-shrink: 0;
+}
+
+.j0ui-tree-node[data-j0-label-color][data-j0-collapsed="false"] {
+    border-color: color-mix(in oklch, var(--fslabel-dot) var(--fslabel-frame-pct), transparent);
+    border-left-color: var(--fslabel-dot);
+    background: color-mix(in oklch, var(--fslabel-child-src) var(--fslabel-child-tint), var(--j0ui-bg-window));
+}
+
+.j0ui-tree-node[data-j0-label-color][data-j0-collapsed="false"]:hover {
+    box-shadow: 0 3px 10px color-mix(in srgb, var(--ipax-0-ink-x) var(--ipax-0-shadow-pct), transparent);
+}
+
+.j0ui-tree-node[data-j0-label-color][data-j0-collapsed="false"] > .j0ui-tree-row {
+    background: linear-gradient(
+        180deg,
+        var(--fslabel-bg) 62%,
+        color-mix(in oklch, var(--fslabel-bg) 72%, color-mix(in oklch, var(--fslabel-child-src) var(--fslabel-child-tint), var(--j0ui-bg-window)))
+    );
+}
+
+.j0ui-tree-node[data-j0-label-color] > .j0ui-tree-branch {
+    background: transparent;
+    border-left: 0;
+    border-radius: 0;
+    padding: 3px 4px 4px 10px;
+}
+
+.j0ui-tree-node[data-j0-label-color][data-j0-collapsed="false"]:hover > .j0ui-tree-branch {
+    background: color-mix(in oklch, var(--fslabel-hover-target) var(--fslabel-child-hover-pct), transparent);
+}
+
+/* ─── ROOT PANE LABELED TOOLBAR & BODY ─── */
+[data-j0-root-pane][data-j0-label-color] .j0ui-tree-toolbar {
+    border-color: color-mix(in oklch, var(--fslabel-dot) var(--fslabel-frame-pct), transparent);
+    border-left: var(--fslabel-spine-w) solid var(--fslabel-dot);
+    background: var(--fslabel-bg);
+    color: var(--fslabel-fg);
+}
+
+[data-j0-root-pane][data-j0-label-color] .j0ui-tree-root {
+    background: color-mix(in oklch, var(--fslabel-child-src) var(--fslabel-child-tint), var(--j0ui-bg-window));
+    border-left: var(--fslabel-spine-w) solid color-mix(in oklch, var(--fslabel-dot) var(--fslabel-child-border-pct), transparent);
+    border-radius: var(--j0ui-radius-sm);
+    padding: 4px;
+}
+
+/* ─── MILLER COLUMNS: LABELED ROWS & COLUMNS ─── */
+.j0ui-miller-col[data-j0-label-color] {
+    background: color-mix(in oklch, var(--fslabel-child-src) var(--fslabel-child-tint), var(--j0ui-bg-window));
+    border-left: var(--fslabel-spine-w) solid color-mix(in oklch, var(--fslabel-dot) var(--fslabel-child-border-pct), transparent);
+    margin-left: -1px;
+}
+
+.j0ui-miller-row[data-j0-label-color] {
+    background: var(--fslabel-bg);
+    color: var(--fslabel-fg);
+}
+
+.j0ui-miller-row[data-j0-label-color] .j0ui-miller-arrow {
+    color: var(--fslabel-fg);
+}
+
+.j0ui-miller-row[data-j0-label-color]:hover {
+    background: color-mix(in oklch, var(--fslabel-hover-target) var(--fslabel-hover-pct), var(--fslabel-bg));
+}
+
+.j0ui-miller-row.j0ui-miller-row--in-path[data-j0-label-color],
+.j0ui-miller-row.j0ui-miller-row--active[data-j0-label-color] {
+    background: linear-gradient(
+        90deg,
+        var(--fslabel-bg) 62%,
+        color-mix(in oklch, var(--fslabel-bg) 72%, color-mix(in oklch, var(--fslabel-child-src) var(--fslabel-child-tint), var(--j0ui-bg-window)))
+    );
+    border-radius: var(--ipax-0-radius-sm) 0 0 var(--ipax-0-radius-sm);
+    margin-right: -4px;
+    padding-right: 10px;
+}
+
+/* ─── CONTEXT MENU SWATCHES (45deg split -p / -i + pure brand ring, red-slash for none) ─── */
+.j0ui-fslabel-swatch {
+    display: inline-block;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: var(--ipax-0-radius-pill);
+    border: 1px solid var(--j0ui-border-subtle);
+    flex-shrink: 0;
+}
+
+.j0ui-fslabel-swatch[data-j0-swatch-color="none"] {
+    background: linear-gradient(
+        -45deg,
+        transparent calc(50% - 1px),
+        var(--j0ui-danger) calc(50% - 1px),
+        var(--j0ui-danger) calc(50% + 1px),
+        transparent calc(50% + 1px)
+    );
+}
+
+.j0ui-fslabel-swatch[data-j0-swatch-color="red"]    { background: linear-gradient(135deg, var(--fslabel-red-p) 50%, var(--fslabel-red-i) 50%);       border-color: var(--fslabel-red); }
+.j0ui-fslabel-swatch[data-j0-swatch-color="orange"] { background: linear-gradient(135deg, var(--fslabel-orange-p) 50%, var(--fslabel-orange-i) 50%); border-color: var(--fslabel-orange); }
+.j0ui-fslabel-swatch[data-j0-swatch-color="yellow"] { background: linear-gradient(135deg, var(--fslabel-yellow-p) 50%, var(--fslabel-yellow-i) 50%); border-color: var(--fslabel-yellow); }
+.j0ui-fslabel-swatch[data-j0-swatch-color="green"]  { background: linear-gradient(135deg, var(--fslabel-green-p) 50%, var(--fslabel-green-i) 50%);   border-color: var(--fslabel-green); }
+.j0ui-fslabel-swatch[data-j0-swatch-color="blue"]   { background: linear-gradient(135deg, var(--fslabel-blue-p) 50%, var(--fslabel-blue-i) 50%);     border-color: var(--fslabel-blue); }
+.j0ui-fslabel-swatch[data-j0-swatch-color="violet"] { background: linear-gradient(135deg, var(--fslabel-violet-p) 50%, var(--fslabel-violet-i) 50%); border-color: var(--fslabel-violet); }
+.j0ui-fslabel-swatch[data-j0-swatch-color="brown"]  { background: linear-gradient(135deg, var(--fslabel-brown-p) 50%, var(--fslabel-brown-i) 50%);   border-color: var(--fslabel-brown); }
+.j0ui-fslabel-swatch[data-j0-swatch-color="black"]  { background: linear-gradient(135deg, var(--fslabel-black-p) 50%, var(--fslabel-black-i) 50%);   border-color: var(--fslabel-black); }

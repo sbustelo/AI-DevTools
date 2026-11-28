@@ -10,7 +10,7 @@
     background: color-mix(in srgb, var(--ipax-0-success) 10%, var(--ipax-surface-tint));
     color: var(--ipax-this-ink);
     font-family: var(--ipax-font-mono);
-    font-size: 12px;
+    font-size: 0.75rem;
     text-decoration: none;
     flex-shrink: 0;
     transition: border-color 0.15s ease, background 0.15s ease;
@@ -52,7 +52,7 @@
     position: absolute;
     right: 28px;
     pointer-events: none;
-    font-size: 10px;
+    font-size: 0.625rem;
     padding: 1px 6px;
 }
 

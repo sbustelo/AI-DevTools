@@ -138,6 +138,14 @@ function dumper_render_view(array $vm): void
                     <?php endif; ?>
                     <?php if (!$isShallowMode): ?>
                         <div class="j0ui-toolbar-icons">
+                            <div class="j0-segmented" role="group" aria-label="<?= htmlspecialchars(L('Explorer view mode', 'Modo de vista del explorador'), ENT_QUOTES, 'UTF-8') ?>" data-j0-segmented="files-view-mode">
+                                <button type="button" class="j0-segment-btn j0-active" data-j0-segment="tree" aria-pressed="true" title="<?= htmlspecialchars(L('Tree view', 'Vista de árbol'), ENT_QUOTES, 'UTF-8') ?>">
+                                    <span class="material-symbols-outlined" aria-hidden="true">format_list_bulleted</span>
+                                </button>
+                                <button type="button" class="j0-segment-btn" data-j0-segment="columns" aria-pressed="false" title="<?= htmlspecialchars(L('Columns view', 'Vista de columnas'), ENT_QUOTES, 'UTF-8') ?>">
+                                    <span class="material-symbols-outlined" aria-hidden="true">view_column</span>
+                                </button>
+                            </div>
                             <button type="button" class="j0ui-btn j0ui-btn--toolbar-text" data-j0-action="tree-toggle-all" data-j0-collapsed-state="true" data-j0-label-expand="<?= htmlspecialchars(L('Expand all', 'Expandir todo'), ENT_QUOTES, 'UTF-8') ?>" data-j0-label-collapse="<?= htmlspecialchars(L('Collapse all', 'Colapsar todo'), ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars(L('Expand all', 'Expandir todo'), ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars(L('Expand all', 'Expandir todo'), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(L('Expand all', 'Expandir todo'), ENT_QUOTES, 'UTF-8') ?></button>
                             <?php if ($fullProjectUrl !== null): ?>
                                 <a class="j0ui-btn j0ui-btn--icon" href="<?= htmlspecialchars($fullProjectUrl, ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars(L('Expand to root', 'Expandir a raíz'), ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars(L('Expand to root', 'Expandir a raíz'), ENT_QUOTES, 'UTF-8') ?>">⤴️</a>
@@ -191,6 +199,7 @@ function dumper_render_view(array $vm): void
                     <ul class="j0ui-tree-root j0ui-scroll-area" data-j0-tree-root>
                         <?php dumper_render_tree_nodes(is_array($scan['tree'] ?? null) ? $scan['tree'] : [], $highlightedRel, $currentRoot, $ctxForIcon); ?>
                     </ul>
+                    <div class="j0ui-miller-host" data-j0-miller-host data-j0-hidden="true"></div>
                 <?php endif; ?>
                 </j0-region>
             </j0-pane>
@@ -295,6 +304,17 @@ function dumper_render_view(array $vm): void
 
                             <span class="j0ui-inspector-key" data-j0-insp-items-row><?= htmlspecialchars(L('Items:', 'Ítems:'), ENT_QUOTES, 'UTF-8') ?></span>
                             <span class="j0ui-inspector-val" data-j0-insp-items>0</span>
+
+                            <span class="j0ui-inspector-key" data-j0-insp-cat-row data-j0-hidden="true"><?= htmlspecialchars(L('Category:', 'Categoría:'), ENT_QUOTES, 'UTF-8') ?></span>
+                            <span class="j0ui-inspector-val" data-j0-insp-cat-val data-j0-hidden="true"><span class="j0ui-badge j0ui-badge-accent" data-j0-insp-cat-badge></span></span>
+
+                            <span class="j0ui-inspector-key" data-j0-insp-root-row data-j0-hidden="true"><?= htmlspecialchars(L('Root:', 'Raíz:'), ENT_QUOTES, 'UTF-8') ?></span>
+                            <span class="j0ui-inspector-val" data-j0-insp-root-val data-j0-hidden="true">
+                                <label class="j0ui-cat-main">
+                                    <input type="checkbox" data-j0-insp-root-toggle>
+                                    <span><?= htmlspecialchars(L('Declared Project Root', 'Project Root declarado'), ENT_QUOTES, 'UTF-8') ?></span>
+                                </label>
+                            </span>
                         </div>
 
                         <div class="j0ui-inspector-section">
@@ -493,9 +513,6 @@ function dumper_render_tree_nodes(array $nodes, string $highlightedRel = '', str
                     <?= $nodeIconHtml ?>
                     <span class="j0ui-tree-name <?= $isDimmed ? 'j0ui-item-dimmed' : '' ?>"><?= $name ?></span>
                 </span>
-                <?php if ($cat !== 'none'): ?>
-                    <span class="j0ui-badge"><?= $cat ?></span>
-                <?php endif; ?>
                 <button type="button" class="j0ui-row-menu-trigger" data-j0-row-menu-trigger aria-label="<?= htmlspecialchars(L('Item actions', 'Acciones del elemento'), ENT_QUOTES, 'UTF-8') ?>">▾</button>
             </div>
             <?php if ($hasChildren): ?>

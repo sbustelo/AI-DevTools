@@ -9,6 +9,12 @@ if (function_exists('j0_use')) {
 /**
  * @return array<int, string>
  */
+function ai0_ui_modules_dir(): string
+{
+    $phys = __DIR__ . '/modules';
+    return function_exists('j0_logical_path') ? j0_logical_path($phys) : $phys;
+}
+
 function ai0_ui_js_sources(): array
 {
     $sources = [
@@ -22,16 +28,47 @@ function ai0_ui_js_sources(): array
         j0_asset_path('j0010-j0-flip.js'),
         j0_asset_path('j0020-j0-window-sheet.js'),
         j0_asset_path('j0010-j0-dialogs.js'),
-        __DIR__ . '/modules',
+        j0_asset_path('j0010-j0-segmented.js'),
+        ai0_ui_modules_dir(),
     ];
     return array_values(array_filter($sources, static fn(mixed $p): bool => is_string($p) && $p !== ''));
 }
 
+/**
+ * @return array<int, string>
+ */
+function ai0_ui_css_sources(): array
+{
+    $sources = [
+        j0_asset_dir('ipax'),
+        j0_asset_path('c0010-j0-menus.css'),
+        j0_asset_path('c0010-j0-windows.css'),
+        j0_asset_path('c0020-j0-window-sheet.css'),
+        j0_asset_path('c0010-j0-dialogs.css'),
+        j0_asset_path('c0010-j0-segmented.css'),
+        ai0_ui_modules_dir(),
+    ];
+    return array_values(array_filter($sources, static fn(mixed $p): bool => is_string($p) && $p !== ''));
+}
+
+/**
+ * Returns a canonical root-anchored web URL inside the mounted ai0 directory (zero ../ traversal).
+ */
+function ai0_url(array $ctx, string $subPath = ''): string
+{
+    $base = (string) ($ctx['ai0_web_root'] ?? '');
+    if ($base === '') {
+        $up = (string) ($ctx['up_rel'] ?? '');
+        $baseDir = (string) ($ctx['base_dir'] ?? 'ai0');
+        $base = $up . $baseDir . '/';
+    }
+    $cleanSub = ltrim($subPath, '/');
+    return rtrim($base, '/') . '/' . $cleanSub;
+}
+
 function ai0_ui_web_base(array $ctx): string
 {
-    $up = $ctx['up_rel'] ?? '';
-    $baseDir = $ctx['base_dir'] ?? 'ai0';
-    return $up . $baseDir . '/ui/';
+    return ai0_url($ctx, 'ui/');
 }
 
 /**
@@ -50,16 +87,20 @@ function ai0_ui_build_paths(array $ctx): array
         @mkdir($outDir, 0775, true);
     }
 
-    $up = (string) ($ctx['up_rel'] ?? '');
-    if ($root !== '' && str_starts_with($tempDir, $root . '/')) {
-        $tempRel = substr($tempDir, strlen($root) + 1);
+    $mappedWeb = function_exists('j0_path_to_web_url') ? j0_path_to_web_url($outDir) : null;
+    if ($mappedWeb !== null && $mappedWeb !== '') {
+        $webBase = rtrim($mappedWeb, '/') . '/';
     } else {
-        $tempRel = '_j0-temp';
+        $up = (string) ($ctx['up_rel'] ?? '');
+        $tempRel = ($root !== '' && str_starts_with($tempDir, $root . '/'))
+            ? substr($tempDir, strlen($root) + 1)
+            : '_j0-temp';
+        $webBase = $up . $tempRel . '/ai0-ui/';
     }
 
     return [
         'out_base' => $outDir . '/modules',
-        'web_base' => $up . $tempRel . '/ai0-ui/',
+        'web_base' => $webBase,
     ];
 }
 
@@ -94,14 +135,7 @@ function ai0_render_icon(array|string $spec, string $extraClass = ''): string
 
 function ai0_render_head(string $title, array $ctx, string $activeTool = '', bool $debug = false): void
 {
-    $cssSources = array_values(array_filter([
-        j0_asset_dir('ipax'),
-        j0_asset_path('c0010-j0-menus.css'),
-        j0_asset_path('c0010-j0-windows.css'),
-        j0_asset_path('c0020-j0-window-sheet.css'),
-        j0_asset_path('c0010-j0-dialogs.css'),
-        __DIR__ . '/modules',
-    ], static fn(mixed $p): bool => is_string($p) && $p !== ''));
+    $cssSources = ai0_ui_css_sources();
     $buildPaths = ai0_ui_build_paths($ctx);
     $cssTags = j0_asset_tags($cssSources, $buildPaths['out_base'], $buildPaths['web_base'], 'css', $debug);
 
@@ -112,10 +146,11 @@ function ai0_render_head(string $title, array $ctx, string $activeTool = '', boo
         $projectRoot = '/';
     }
 
-    $hubUrl = $webBase . '../index.php';
-    $filesUrl = $webBase . '../tools/files/index.php';
-    $patcherUrl = $webBase . '../tools/patcher/index.php';
-    $i18nBatchUrl = $webBase . '../tools/i18n-batch/index.php';
+    $filesUrl = ai0_url($ctx, 'tools/files/index.php');
+    $patcherUrl = ai0_url($ctx, 'tools/patcher/index.php');
+    $i18nBatchUrl = ai0_url($ctx, 'tools/i18n-batch/index.php');
+    $settingsUrl = ai0_url($ctx, 'tools/settings/index.php');
+    $prefsApiUrl = ai0_url($ctx, 'tools/settings/api.php');
     $projectFilesUrl = $filesUrl . '?browse=' . rawurlencode($projectRoot);
 
     $safeTitle = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
@@ -142,10 +177,11 @@ function ai0_render_head(string $title, array $ctx, string $activeTool = '', boo
     ?>
 <!DOCTYPE html>
 <?php $isViewportApp = in_array($activeTool, ['files', 'patcher'], true); ?>
-<html lang="<?= $safeLang ?>" data-ipax-theme="<?= $theme ?>"<?= $isViewportApp ? ' data-j0-viewport="app"' : '' ?>>
+<html lang="<?= $safeLang ?>" data-ipax-theme="<?= $theme ?>" data-ai0-prefs-api="<?= htmlspecialchars($prefsApiUrl, ENT_QUOTES, 'UTF-8') ?>"<?= $isViewportApp ? ' data-j0-viewport="app"' : '' ?>>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0">
     <title="<?= $safeTitle ?></title>
     <?= $cssTags . "\n" ?>
 </head>
@@ -191,10 +227,13 @@ function ai0_render_head(string $title, array $ctx, string $activeTool = '', boo
         </div>
         <div class="j0ui-topbar-end">
             <nav class="j0ui-nav">
-                <a class="j0ui-btn <?= $activeTool === 'devtools' ? 'j0ui-btn--active' : '' ?>" href="<?= htmlspecialchars($hubUrl, ENT_QUOTES, 'UTF-8') ?>">DevTools</a>
                 <a class="j0ui-btn <?= $activeTool === 'files' ? 'j0ui-btn--active' : '' ?>" href="<?= htmlspecialchars($filesUrl, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(L('Files', 'Archivos'), ENT_QUOTES, 'UTF-8') ?></a>
                 <a class="j0ui-btn <?= $activeTool === 'patcher' ? 'j0ui-btn--active' : '' ?>" href="<?= htmlspecialchars($patcherUrl, ENT_QUOTES, 'UTF-8') ?>">patcher</a>
-                <a class="j0ui-btn <?= $activeTool === 'i18n-batch' ? 'j0ui-btn--active' : '' ?>" href="<?= htmlspecialchars($i18nBatchUrl, ENT_QUOTES, 'UTF-8') ?>">i18n-batch</a>
+                <a class="j0ui-btn <?= $activeTool === 'i18n-batch' ? 'j0ui-btn--active' : '' ?>" href="<?= htmlspecialchars($i18nBatchUrl, ENT_QUOTES, 'UTF-8') ?>">i18n</a>
+                <a class="j0ui-btn j0ui-btn--icon <?= $activeTool === 'settings' ? 'j0ui-btn--active' : '' ?>"
+                   href="<?= htmlspecialchars($settingsUrl, ENT_QUOTES, 'UTF-8') ?>"
+                   title="<?= htmlspecialchars(L('Settings & Environment', 'Configuración y Entorno'), ENT_QUOTES, 'UTF-8') ?>"
+                   aria-label="<?= htmlspecialchars(L('Settings', 'Configuración'), ENT_QUOTES, 'UTF-8') ?>"><span class="material-symbols-outlined j0ui-gear-icon" aria-hidden="true">settings</span></a>
             </nav>
             <j0-theme-switch>
                 <div class="theme-pill" role="switch" aria-checked="<?= $theme === 'dark' ? 'true' : 'false' ?>" aria-label="<?= htmlspecialchars(L('Toggle color theme', 'Alternar tema de color'), ENT_QUOTES, 'UTF-8') ?>" tabindex="0" data-j0-action="ui:toggle-theme">

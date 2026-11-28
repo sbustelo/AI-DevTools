@@ -6,7 +6,13 @@
     },
     "icon": "🗑️",
     "danger": true,
+    "multi": true,
+    "prune_descendants": true,
     "applies_to": ["file", "dir"],
+    "confirm_multi": {
+        "en": "Mark {0} items as discarded (_🗑️)?",
+        "es": "¿Marcar {0} elementos como descartados (_🗑️)?"
+    },
     "confirm": {
         "en": "Mark item as discarded (_🗑️)?",
         "es": "¿Marcar elemento como descartado (_🗑️)?"

@@ -37,6 +37,7 @@
     --j0ui-space-md: var(--ipax-0-space-md);
     --j0ui-font-sans: var(--ipax-font-ui);
     --j0ui-font-mono: var(--ipax-font-mono);
+    --ai0-font-listing: var(--ipax-font-mono);
 
     --j0ui-z-sticky: var(--ipax-z-sticky);
     --j0ui-z-modal: var(--ipax-z-modal);
@@ -46,36 +47,6 @@
     --j0ui-z-dropdown: var(--ipax-z-dropdown);
 
     --submenu-hover-area: transparent;
-
-    /* Finder-style folder label palette (ai0 product tokens) */
-    --fslabel-red-i: #d93025;
-    --fslabel-red-p: #ff6b6b;
-    --fslabel-orange-i: #e8710a;
-    --fslabel-orange-p: #ff9f43;
-    --fslabel-yellow-i: #d4a017;
-    --fslabel-yellow-p: #feca57;
-    --fslabel-green-i: #1e8e3e;
-    --fslabel-green-p: #2ecc71;
-    --fslabel-blue-i: #1a73e8;
-    --fslabel-blue-p: #54a0ff;
-    --fslabel-violet-i: #9334e6;
-    --fslabel-violet-p: #b980ff;
-    --fslabel-brown-i: #8d5524;
-    --fslabel-brown-p: #c88a55;
-    --fslabel-black-i: #757575;
-    --fslabel-black-p: #9ea7b8;
-
-    --fslabel-red: var(--fslabel-red-p);
-    --fslabel-orange: var(--fslabel-orange-p);
-    --fslabel-yellow: var(--fslabel-yellow-p);
-    --fslabel-green: var(--fslabel-green-p);
-    --fslabel-blue: var(--fslabel-blue-p);
-    --fslabel-violet: var(--fslabel-violet-p);
-    --fslabel-brown: var(--fslabel-brown-p);
-    --fslabel-black: var(--fslabel-black-p);
-
-    --fslabel-row-tint: 34%;
-    --fslabel-child-tint: 16%;
 }
 
 /* ai0 Dark Mode — IPAX 2 Level 1 overrides (warm neutral paper & brown accents, anti-halation) */
@@ -87,16 +58,4 @@ html[data-ipax-theme~="dark"] {
     --ipax-0-shadow-pct: 48%;
 }
 
-html[data-ipax-theme~="light"] {
-    --fslabel-red: var(--fslabel-red-i);
-    --fslabel-orange: var(--fslabel-orange-i);
-    --fslabel-yellow: var(--fslabel-yellow-i);
-    --fslabel-green: var(--fslabel-green-i);
-    --fslabel-blue: var(--fslabel-blue-i);
-    --fslabel-violet: var(--fslabel-violet-i);
-    --fslabel-brown: var(--fslabel-brown-i);
-    --fslabel-black: var(--fslabel-black-i);
-
-    --fslabel-row-tint: 20%;
-    --fslabel-child-tint: 9%;
-}
+/* Folder label palette and light/dark rules live in 0026-fslabels--ui-widget/c0026-fslabels.css */

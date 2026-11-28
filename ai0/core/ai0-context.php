@@ -98,7 +98,11 @@ if (!function_exists('j0_boot')) {
     }
 }
 
-j0_boot(dirname(__DIR__));
+if (!defined('AI0_DIR')) {
+    define('AI0_DIR', rtrim(str_replace(chr(92), '/', dirname(__DIR__)), '/'));
+}
+
+j0_boot(AI0_DIR);
 j0_use('core', 'vfs', 'i18n', 'assets', 'fs-io', 'bundler', 'ui-menus', 'ui-windows');
 require_once __DIR__ . '/ai0-root.php';
 require_once __DIR__ . '/ai0-icons.php';
@@ -137,21 +141,71 @@ function ai0_resolve_context(string $fallbackDir): array
     $bs = chr(92);
     $ai0Dir = str_replace($bs, '/', dirname(__DIR__));
 
+    $docRoot = isset($_SERVER['DOCUMENT_ROOT']) ? rtrim(str_replace($bs, '/', (string) $_SERVER['DOCUMENT_ROOT']), '/') : '';
+    $scriptName = isset($_SERVER['SCRIPT_NAME']) ? str_replace($bs, '/', (string) $_SERVER['SCRIPT_NAME']) : '';
+
     if (isset($GLOBALS['ai0_context']) && is_array($GLOBALS['ai0_context'])) {
         $ctx = $GLOBALS['ai0_context'];
         $ctx['via_stub'] = true;
-    } else {
-        $scriptFile = $_SERVER['SCRIPT_FILENAME'] ?? '';
-        $scriptDir = $scriptFile !== ''
-            ? dirname(str_replace($bs, '/', $scriptFile))
-            : str_replace($bs, '/', $fallbackDir);
-
-        $ai0Clean = rtrim($ai0Dir, '/');
-        $root = rtrim(str_replace($bs, '/', dirname($ai0Clean)), '/');
-        if ($root === '') {
-            $root = '/';
+        if ($docRoot !== '' && $scriptName !== '' && is_dir($docRoot)) {
+            $ctxRoot = rtrim(str_replace($bs, '/', (string) ($ctx['root'] ?? '')), '/');
+            if ($ctxRoot !== '' && $ctxRoot !== $docRoot && !str_starts_with($ctxRoot . '/', $docRoot . '/')) {
+                $lexScriptDir = rtrim(dirname($docRoot . '/' . ltrim($scriptName, '/')), '/');
+                $cursor = $lexScriptDir;
+                for ($lvl = 0; $lvl <= 12; $lvl++) {
+                    $bName = basename($cursor);
+                    if (in_array($bName, ['ai0', '_ai0'], true) && is_file($cursor . '/core/ai0-context.php')) {
+                        $ctx['base_dir'] = $bName;
+                        $ctx['root'] = rtrim(dirname($cursor), '/') ?: '/';
+                        break;
+                    }
+                    if ($cursor === $docRoot) {
+                        break;
+                    }
+                    $parent = dirname($cursor);
+                    if ($parent === $cursor) {
+                        break;
+                    }
+                    $cursor = $parent;
+                }
+            }
         }
-        $scriptClean = rtrim($scriptDir, '/');
+    } else {
+        $ai0Clean = rtrim($ai0Dir, '/');
+        $root = '';
+        $baseDir = basename($ai0Clean);
+        $scriptClean = '';
+
+        if ($docRoot !== '' && $scriptName !== '' && is_dir($docRoot)) {
+            $lexFile = $docRoot . '/' . ltrim($scriptName, '/');
+            $scriptClean = rtrim(dirname($lexFile), '/');
+            $cursor = $scriptClean;
+            for ($lvl = 0; $lvl <= 12; $lvl++) {
+                $baseName = basename($cursor);
+                if (in_array($baseName, ['ai0', '_ai0'], true) && is_file($cursor . '/core/ai0-context.php')) {
+                    $baseDir = $baseName;
+                    $root = rtrim(dirname($cursor), '/') ?: '/';
+                    break;
+                }
+                if ($cursor === $docRoot) {
+                    break;
+                }
+                $parent = dirname($cursor);
+                if ($parent === $cursor) {
+                    break;
+                }
+                $cursor = $parent;
+            }
+        }
+
+        if ($root === '') {
+            $scriptFile = $_SERVER['SCRIPT_FILENAME'] ?? '';
+            $scriptClean = $scriptFile !== ''
+                ? rtrim(dirname(str_replace($bs, '/', $scriptFile)), '/')
+                : rtrim(str_replace($bs, '/', $fallbackDir), '/');
+            $root = rtrim(str_replace($bs, '/', dirname($ai0Clean)), '/') ?: '/';
+        }
+
         if ($root !== '/' && str_starts_with($scriptClean . '/', $root . '/')) {
             $sub = trim(substr($scriptClean, strlen($root)), '/');
             $depth = $sub === '' ? 0 : count(explode('/', $sub));
@@ -161,13 +215,13 @@ function ai0_resolve_context(string $fallbackDir): array
             $depth = $sub === '' ? 0 : count(explode('/', $sub));
             $upRel = $depth === 0 ? '' : str_repeat('../', $depth);
         } else {
-            $upRel = '../';
+            $upRel = '';
         }
 
         $ctx = [
             'root'       => $root,
-            'match'      => basename($ai0Clean),
-            'base_dir'   => basename($ai0Clean),
+            'match'      => $baseDir,
+            'base_dir'   => $baseDir,
             'target_abs' => $scriptClean,
             'origin_abs' => $root,
             'up_rel'     => $upRel,
@@ -208,7 +262,21 @@ function ai0_resolve_context(string $fallbackDir): array
     }
     $ctx['project_root'] = $projectRoot;
 
-    j0_locate_init($projectRoot);
+    j0_locate_init($rootClean !== '' ? $rootClean : $projectRoot);
+    if (function_exists('j0_register_mount')) {
+        if (is_dir($mountPath)) {
+            j0_register_mount('ai0', $ai0Dir, $mountPath);
+        }
+        if (function_exists('j0_auto_bind_core_mounts')) {
+            j0_auto_bind_core_mounts();
+        }
+    }
+    $ai0Logical = is_dir($mountPath) ? $mountPath : $ai0Dir;
+    $ctx['ai0_logical_dir'] = $ai0Logical;
+    $mappedAi0Web = function_exists('j0_path_to_web_url') ? j0_path_to_web_url($ai0Logical) : null;
+    $ctx['ai0_web_root'] = ($mappedAi0Web !== null && $mappedAi0Web !== '')
+        ? (rtrim($mappedAi0Web, '/') . '/')
+        : (($ctx['up_rel'] ?? '') . ($ctx['base_dir'] ?? 'ai0') . '/');
 
     return $ctx;
 }
