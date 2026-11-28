@@ -52,14 +52,25 @@ if (!function_exists('j0_asset_tags')) {
         $excludeLookup = array_flip($excludePaths);
 
         $files = [];
+        $sourcesComplete = true;
         foreach ((array) $sources as $src) {
-            $srcClean = rtrim(str_replace($bs, '/', (string) $src), '/');
+            if (!is_string($src) || trim($src) === '') {
+                $sourcesComplete = false;
+                continue;
+            }
+            $srcClean = rtrim(str_replace($bs, '/', $src), '/');
             if (is_file($srcClean) && str_ends_with(strtolower($srcClean), '.' . $extClean)) {
                 if (!isset($excludeLookup[$srcClean])) {
                     $files[] = $srcClean;
                 }
             } elseif (is_dir($srcClean)) {
-                $files = array_merge($files, j0_scan_files($srcClean, [$extClean], ['_', '.'], $excludePaths));
+                $scanned = j0_scan_files($srcClean, [$extClean], ['_', '.'], $excludePaths);
+                if ($scanned === []) {
+                    $sourcesComplete = false;
+                }
+                $files = array_merge($files, $scanned);
+            } else {
+                $sourcesComplete = false;
             }
         }
         $files = array_values(array_unique($files));
@@ -74,10 +85,16 @@ if (!function_exists('j0_asset_tags')) {
         $currentSig = $inputsHash . '@' . $minStat;
         $cachedSig = is_file($sigFile) ? trim((string) @file_get_contents($sigFile)) : '';
 
-        $canWrite = is_dir(dirname($minOut)) ? is_writable(dirname($minOut)) : is_writable(dirname($minOut, 2));
-        $needsBuild = ($files !== []) && (!is_file($minOut) || $cachedSig !== $currentSig);
+        $outParent = dirname($minOut);
+        $canWrite = is_dir($outParent) ? is_writable($outParent) : is_writable(dirname($outParent));
+        $needsBuild = $sourcesComplete && ($files !== []) && (!is_file($minOut) || ($debug && !is_file($rawOut)) || $cachedSig !== $currentSig);
+        $isDistDir = strtolower(basename($outParent)) === 'dist';
+        $defaultBackup = !($isDistDir || (function_exists('j0_is_temp_path') && j0_is_temp_path($rawOut)));
 
         if ($needsBuild && $canWrite) {
+            if (!is_dir($outParent)) {
+                @mkdir($outParent, 0775, true);
+            }
             if (!function_exists('j0_build_bundle')) {
                 $bundlerFile = dirname(__DIR__) . '/0190-bundler/p0040-build.php';
                 if (is_file($bundlerFile)) {
@@ -85,23 +102,25 @@ if (!function_exists('j0_asset_tags')) {
                 }
             }
             if (function_exists('j0_build_bundle')) {
+                $validSources = array_values(array_filter((array) $sources, static fn($s): bool => is_string($s) && trim($s) !== ''));
                 $buildRes = j0_build_bundle(array_merge([
-                    'sources'  => $sources,
+                    'sources'  => $validSources,
                     'out_file' => $rawOut,
                     'ext'      => $extClean,
                     'minify'   => true,
-                    'backup'   => !(function_exists('j0_is_temp_path') && j0_is_temp_path($rawOut)),
+                    'backup'   => $defaultBackup,
                     'exclude'  => $excludePaths,
                 ], $buildOptions));
                 if (!empty($buildRes['ok'])) {
                     clearstatcache(true, $minOut);
+                    clearstatcache(true, $rawOut);
                     $builtStat = is_file($minOut) ? ((int) @filemtime($minOut) . ':' . (int) @filesize($minOut)) : 'missing';
                     @file_put_contents($sigFile, $inputsHash . '@' . $builtStat . "\n", LOCK_EX);
                 }
             }
         }
 
-        if ((!$debug || $files === []) && is_file($minOut)) {
+        if ((!$debug || !$sourcesComplete || $files === []) && is_file($minOut)) {
             $ver = (int) filemtime($minOut);
             $href = htmlspecialchars($webPrefix . basename($minOut) . '?v=' . $ver, ENT_QUOTES, 'UTF-8');
             return $extClean === 'css'
@@ -109,66 +128,46 @@ if (!function_exists('j0_asset_tags')) {
                 : "<script src=\"{$href}\"></script>";
         }
 
-        $outDir = function_exists('j0_logical_path')
-            ? j0_logical_path(dirname($outClean))
-            : rtrim(str_replace($bs, '/', dirname($outClean)), '/');
-
+        // Debug mode: emit individual tags ONLY if every source file is web-reachable under DOCUMENT_ROOT.
+        // When j0 lives outside DOCUMENT_ROOT (e.g. sibling folder above vhost), serve unminified dist/<name>.<ext> instead of 404 links.
         $tags = [];
-        foreach ($files as $absFile) {
-            $normFile = function_exists('j0_logical_path')
-                ? j0_logical_path($absFile)
-                : str_replace($bs, '/', $absFile);
-
-            if (function_exists('j0_path_to_web_url')) {
+        $allWebReachable = function_exists('j0_path_to_web_url') && isset($_SERVER['DOCUMENT_ROOT']) && $_SERVER['DOCUMENT_ROOT'] !== '';
+        if ($allWebReachable) {
+            foreach ($files as $absFile) {
+                $normFile = function_exists('j0_logical_path') ? j0_logical_path($absFile) : str_replace($bs, '/', $absFile);
                 $mappedUrl = j0_path_to_web_url($normFile);
-                if ($mappedUrl !== null) {
-                    $ver = (int) @filemtime($absFile);
-                    $url = htmlspecialchars($mappedUrl . '?v=' . $ver, ENT_QUOTES, 'UTF-8');
-                    $tags[] = $extClean === 'css'
-                        ? "<link rel=\"stylesheet\" href=\"{$url}\">"
-                        : "<script src=\"{$url}\"></script>";
-                    continue;
+                if ($mappedUrl === null) {
+                    $allWebReachable = false;
+                    break;
                 }
+                $ver = (int) @filemtime($absFile);
+                $url = htmlspecialchars($mappedUrl . '?v=' . $ver, ENT_QUOTES, 'UTF-8');
+                $tags[] = $extClean === 'css'
+                    ? "<link rel=\"stylesheet\" href=\"{$url}\">"
+                    : "<script src=\"{$url}\"></script>";
             }
-
-            $fromParts = $outDir === '' ? [] : explode('/', trim($outDir, '/'));
-            $toParts = explode('/', trim($normFile, '/'));
-            $common = 0;
-            $limit = min(count($fromParts), count($toParts));
-            while ($common < $limit && $fromParts[$common] === $toParts[$common]) {
-                $common++;
-            }
-            $upCount = count($fromParts) - $common;
-            $relFromOut = str_repeat('../', $upCount) . implode('/', array_slice($toParts, $common));
-
-            $schemePrefix = '';
-            $pathToClean = $webPrefix . $relFromOut;
-            if (preg_match('#^(https?://[^/]+|//[^/]+)(.*)$#i', $pathToClean, $urlMatch)) {
-                $schemePrefix = $urlMatch[1];
-                $pathToClean = $urlMatch[2];
-            }
-            $rawSegments = explode('/', $pathToClean);
-            $cleanSegments = [];
-            foreach ($rawSegments as $seg) {
-                if ($seg === '' || $seg === '.') {
-                    continue;
-                }
-                if ($seg === '..' && $cleanSegments !== [] && end($cleanSegments) !== '..') {
-                    array_pop($cleanSegments);
-                } else {
-                    $cleanSegments[] = $seg;
-                }
-            }
-            $leadingSlash = ($schemePrefix !== '' || str_starts_with($pathToClean, '/')) ? '/' : '';
-            $finalRel = $schemePrefix . $leadingSlash . implode('/', $cleanSegments);
-
-            $ver = (int) @filemtime($absFile);
-            $url = htmlspecialchars($finalRel . '?v=' . $ver, ENT_QUOTES, 'UTF-8');
-            $tags[] = $extClean === 'css'
-                ? "<link rel=\"stylesheet\" href=\"{$url}\">"
-                : "<script src=\"{$url}\"></script>";
         }
 
-        return implode("\n", $tags);
+        if ($allWebReachable && $tags !== []) {
+            return implode("\n", $tags);
+        }
+
+        if (is_file($rawOut)) {
+            $ver = (int) filemtime($rawOut);
+            $href = htmlspecialchars($webPrefix . basename($rawOut) . '?v=' . $ver, ENT_QUOTES, 'UTF-8');
+            return $extClean === 'css'
+                ? "<link rel=\"stylesheet\" href=\"{$href}\">"
+                : "<script src=\"{$href}\"></script>";
+        }
+
+        if (is_file($minOut)) {
+            $ver = (int) filemtime($minOut);
+            $href = htmlspecialchars($webPrefix . basename($minOut) . '?v=' . $ver, ENT_QUOTES, 'UTF-8');
+            return $extClean === 'css'
+                ? "<link rel=\"stylesheet\" href=\"{$href}\">"
+                : "<script src=\"{$href}\"></script>";
+        }
+
+        return '';
     }
 }

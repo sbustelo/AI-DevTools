@@ -1,19 +1,33 @@
 /*! j0 compiled */
 /* === SOURCE: c0000-ipax-tokens.css === */
 /* PATH: j0/src/0500-ipax/c0000-ipax-tokens.css */
-/* IPAX 2 Level 0 — Neutral default input values for j0. Products override these in userland. */
+/* IPAX 2 Level 0 — Quickstart reference template.
+   j0 does NOT impose brand colors: copy the commented Level 0 & Level 1 blocks
+   into your product's token stylesheet loaded after 0500-ipax. */
+
+/*
+:root {
+    --ipax-0-paper-x: #FFFFFF;
+    --ipax-0-paper: #F0F0F0;
+    --ipax-0-accent-p: #70b3f7;
+    --ipax-0-accent: #00519a;
+    --ipax-0-accent-i: #20486e;
+    --ipax-0-ink: #1E1E1E;
+    --ipax-0-ink-x: #000000;
+    --ipax-0-muted-pct: 70%;
+}
+
+/* Level 1 Dark override example (avoids naive inversion and halation):
+html[data-ipax-theme~="dark"] {
+    --ipax-1-paper: #302E29;
+    --ipax-1-accent-p: #56421d;
+    --ipax-1-accent: #754109;
+    --ipax-1-accent-i: #f0d2a3;
+}
+*/
 
 :root {
-    /* ─── COLOR ─── */
-    --ipax-0-paper-x: #FFFFFF;
-    --ipax-0-paper: #F5F6F8;
-    --ipax-0-accent-p: #60A5FA;
-    --ipax-0-accent: #2563EB;
-    --ipax-0-accent-i: #1D4ED8;
-    --ipax-0-ink: #14171D;
-    --ipax-0-ink-x: #0B0D11;
-
-    --ipax-0-muted-pct: 65%;
+    --ipax-0-muted-pct: 70%;
     --ipax-0-deep-pct: 70%;
 
     /* Semantic status anchors */
@@ -95,11 +109,12 @@
     --ipax-0-space-lg: 24px;
 
     /* ─── MIX RATIOS ─── */
-    --ipax-0-tint-pct: 6%;
-    --ipax-0-line-pct: 12%;
-    --ipax-0-rule-pct: 18%;
-    --ipax-0-wash-pct: 12%;
+    --ipax-0-tint-pct: 4%;
+    --ipax-0-line-pct: 10%;
+    --ipax-0-rule-pct: 15%;
+    --ipax-0-wash-pct: 10%;
     --ipax-0-link-hover-pct: 30%;
+    --ipax-0-shadow-pct: 22%;
 
     /* ─── TEXT & MOTION ─── */
     --ipax-0-line-height: 1.55;
@@ -336,7 +351,7 @@
     background: var(--ipax-this-paper);
     border: var(--ipax-0-border-width) solid var(--ipax-border-line);
     border-radius: var(--ipax-0-radius-sm);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--ipax-this-ink) 18%, transparent);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--ipax-0-ink-x) var(--ipax-0-shadow-pct), transparent);
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -420,7 +435,7 @@
     background: var(--ipax-this-paper);
     border: var(--ipax-0-border-width) solid var(--ipax-border-line);
     border-radius: var(--ipax-0-radius-sm);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--ipax-this-ink) 16%, transparent);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--ipax-0-ink-x) var(--ipax-0-shadow-pct), transparent);
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -447,14 +462,33 @@
     cursor: pointer;
 }
 
-.j0-dropdown-option:hover,
+.j0-dropdown-option:hover {
+    background: var(--ipax-surface-tint);
+}
+
 .j0-dropdown-option[data-j0-selected="true"] {
-    background: color-mix(in srgb, var(--ipax-this-accent) 14%, transparent);
+    background: var(--ipax-1-accent);
+    color: var(--ipax-0-paper-x);
 }
 /* === SOURCE: c0010-demo-tognazzini.css === */
 /* PATH: j0/examples/05-tognazzini-menu/c0010-demo-tognazzini.css */
 :root {
+    --ipax-0-paper-x: #FFFFFF;
+    --ipax-0-paper: #F0F0F0;
+    --ipax-0-accent-p: #70b3f7;
+    --ipax-0-accent: #00519a;
+    --ipax-0-accent-i: #20486e;
+    --ipax-0-ink: #1E1E1E;
+    --ipax-0-ink-x: #000000;
+    --ipax-0-muted-pct: 70%;
     --submenu-hover-area: color-mix(in srgb, var(--ipax-1-accent-p) 28%, transparent);
+}
+
+html[data-ipax-theme~="dark"] {
+    --ipax-1-paper: #302E29;
+    --ipax-1-accent-p: #56421d;
+    --ipax-1-accent: #754109;
+    --ipax-1-accent-i: #f0d2a3;
 }
 
 html[data-demo-show-safezone="false"] {
